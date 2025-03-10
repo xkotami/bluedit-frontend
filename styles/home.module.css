@@ -1,0 +1,14 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    min-height: 100vh;
+    font-family: "Source Code Pro", sans-serif;
+}
+
+.main h1 {
+}
+
+.main h2 {
+}
