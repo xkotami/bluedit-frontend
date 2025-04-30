@@ -1,0 +1,124 @@
+.post {
+    display: flex;
+    background: white;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+}
+
+.voteContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #F8F9FA;
+    padding: 8px 4px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    min-width: 40px;
+}
+
+.upvote, .downvote {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #878A8C;
+}
+
+.upvote:hover {
+    color: #FF4500;
+}
+
+.downvote:hover {
+    color: #7193FF;
+}
+
+.voteCount {
+    font-weight: bold;
+    font-size: 12px;
+    margin: 4px 0;
+}
+
+.postContent {
+    flex: 1;
+    padding: 8px;
+}
+
+.postHeader {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #787C7E;
+    margin-bottom: 8px;
+}
+
+.subreddit {
+    font-weight: bold;
+    color: #222;
+    cursor: pointer;
+}
+
+.subreddit:hover {
+    text-decoration: underline;
+}
+
+.dot {
+    margin: 0 4px;
+}
+
+.author {
+    cursor: pointer;
+}
+
+.author:hover {
+    text-decoration: underline;
+}
+
+.postTitle {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #222;
+    cursor: pointer;
+}
+
+.postTitle:hover {
+    color: #0079D3;
+}
+
+.postImage {
+    max-width: 100%;
+    max-height: 512px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.postText {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    line-height: 21px;
+    color: #222;
+}
+
+.postActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.actionButton {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    font-size: 12px;
+    font-weight: bold;
+    color: #878A8C;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.actionButton:hover {
+    background: #F6F7F8;
+    border-radius: 4px;
+}

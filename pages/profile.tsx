@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import Header from '@components/header';
-import styles from '@styles/home.module.css';
+import styles from '@styles/profile.module.css';
 
 
 const Profile: React.FC = () => {

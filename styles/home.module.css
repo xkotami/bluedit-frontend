@@ -1,14 +1,169 @@
-.main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
+
+.mainContainer {
+    background-color: #DAE0E6;
     min-height: 100vh;
-    font-family: "Source Code Pro", sans-serif;
+    padding-top: 50px;
 }
 
-.main h1 {
+.content {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 24px;
 }
 
-.main h2 {
+.leftSidebar {
+    flex: 0 0 312px;
+}
+
+.rightSidebar {
+    flex: 0 0 312px;
+}
+
+
+.postsFeed {
+    flex: 1;
+    min-width: 0;
+}
+
+
+.createPostCard {
+    background: white;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+}
+
+.userAvatar {
+    width: 32px;
+    height: 32px;
+    background: #0079D3;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+}
+
+.createPostInput {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #EDEFF1;
+    border-radius: 4px;
+    background: #F6F7F8;
+    font-size: 14px;
+}
+
+.createPostInput:hover {
+    background: white;
+    border-color: #0079D3;
+}
+
+.mediaButton {
+    background: none;
+    border: none;
+    font-size: 20px;
+    margin-left: 8px;
+    cursor: pointer;
+    color: #878A8C;
+}
+
+.communitiesSection {
+    background: white;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+}
+
+.communitiesSection h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.communityList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.communityList li {
+    padding: 8px 0;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.communityList li:hover {
+    color: #0079D3;
+}
+
+.aboutCard, .trendingCard {
+    background: white;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+}
+
+.aboutCard h3, .trendingCard h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.joinButton {
+    background: #0079D3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+}
+
+.trendingList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: trending-counter;
+}
+
+.trendingList li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.trendingList li:before {
+    counter-increment: trending-counter;
+    content: counter(trending-counter);
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    color: #878A8C;
+}
+
+.trendingList li:hover {
+    color: #0079D3;
+}
+
+@media (max-width: 960px) {
+    .leftSidebar {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .rightSidebar {
+        display: none;
+    }
 }
