@@ -1,0 +1,12 @@
+.sidebar{
+    display: flex;
+    flex-direction: row;
+    background-color: ffff;
+    color: blue;
+}
+
+.list{
+    display: flex;
+    flex-direction: column;
+    
+}

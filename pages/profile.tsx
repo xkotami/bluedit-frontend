@@ -13,11 +13,11 @@ const Profile: React.FC = () => {
             <Header />
             <main className={styles.main}>
                 <span>
-                    <h1>Setback</h1>
+                    <h1>Profile</h1>
                 </span>
 
                 <div className={styles.description}>
-                    <p>Welcome to the Setback platform.</p>
+                    <p>Welcome to the profile page.</p>
                 </div>
             </main>
         </>

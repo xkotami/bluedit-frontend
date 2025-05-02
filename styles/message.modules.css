@@ -1,0 +1,17 @@
+.message_icon{
+    display: block;
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+}
+
+.icon {
+    height: 24px;
+    width: 24px;
+    color: #333;
+    cursor: pointer;
+  }
+
+.icon:hover{
+    width: 30PX;
+}
