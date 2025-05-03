@@ -1,21 +1,9 @@
 import Link from 'next/link';
 import styles from '@styles/post.module.css';
+import { Post } from '@types';
 
 interface PostProps {
-    post: {
-        id: number;
-        title: string;
-        author: string;
-        subreddit: string;
-        upvotes: string;
-        commentsCount: string;
-        timePosted: string;
-        content: {
-            type: 'text' | 'image';
-            text?: string;
-            url?: string;
-        };
-    };
+    post: Post;
 }
 
 const Post: React.FC<PostProps> = ({ post }) => {
@@ -23,41 +11,31 @@ const Post: React.FC<PostProps> = ({ post }) => {
         <div className={styles.post}>
             <div className={styles.voteContainer}>
                 <button className={styles.upvote}>▲</button>
-                <span className={styles.voteCount}>{post.upvotes}</span>
+                <span className={styles.voteCount}>{post.user.points}</span>
                 <button className={styles.downvote}>▼</button>
             </div>
             <div className={styles.postContent}>
                 <div className={styles.postHeader}>
-                    <span className={styles.subreddit}>r/{post.subreddit}</span>
+                    <span className={styles.author}>Posted by u/{post.user.username}</span>
                     <span className={styles.dot}>•</span>
-                    <span className={styles.author}>Posted by u/{post.author}</span>
-                    <span className={styles.dot}>•</span>
-                    <span className={styles.time}>{post.timePosted}</span>
+                    <span className={styles.time}>{new Date(post.createdAt).toLocaleString()}</span>
                 </div>
 
                 <Link href={`/posts/${post.id}`} passHref>
                     <h3 className={styles.postTitle}>{post.title}</h3>
                 </Link>
 
-                {post.content.type === 'image' && (
+                {post.description && (
                     <Link href={`/posts/${post.id}`} passHref>
-                        <img
-                            src={post.content.url}
-                            alt="Post content"
-                            className={styles.postImage}
-                        />
+                        <p className={styles.postText}>{post.description}</p>
                     </Link>
                 )}
-                {post.content.type === 'text' && (
-                    <Link href={`/posts/${post.id}`} passHref>
-                        <p className={styles.postText}>{post.content.text}</p>
-                    </Link>
-                )}
+
                 <div className={styles.postActions}>
                     <Link href={`/posts/${post.id}`} passHref>
                         <button className={styles.actionButton}>
                             <span className={styles.actionIcon}>💬</span>
-                            <span>{post.commentsCount} Comments</span>
+                            <span>{post.comments.length} Comments</span>
                         </button>
                     </Link>
                     <button className={styles.actionButton}>

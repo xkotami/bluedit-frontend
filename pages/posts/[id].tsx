@@ -2,63 +2,27 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '@components/header';
 import styles from '@styles/postDetail.module.css';
-
-interface Comment {
-    id: number;
-    author: string;
-    timePosted: string;
-    text: string;
-    upvotes: string;
-}
-
-interface PostDetailData {
-    id: string | string[];
-    title: string;
-    author: string;
-    subreddit: string;
-    upvotes: string;
-    commentsCount: string;
-    timePosted: string;
-    content: {
-        text: string;
-    };
-    comments: Comment[];
-}
+import { useEffect, useState } from 'react';
+import { Post, Comment } from '@types';
+import postService from '@services/PostService';
 
 const PostDetail = () => {
+    const [post, setPost] = useState<Post | null>(null);
     const router = useRouter();
     const { id } = router.query;
 
-//
-    // @ts-ignore
-    const post: PostDetailData = {
-        id: id,
-        title: 'Example post title',
-        author: 'username',
-        subreddit: 'community',
-        upvotes: '33K',
-        commentsCount: '2.2K',
-        timePosted: '8 hr. ago',
-        content: {
-            text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit...'
-        },
-        comments: [
-            {
-                id: 1,
-                author: 'user1',
-                timePosted: '5 hr. ago',
-                text: 'This is a great post! Thanks for sharing.',
-                upvotes: '1.2K'
-            },
-            {
-                id: 2,
-                author: 'user2',
-                timePosted: '4 hr. ago',
-                text: 'I completely agree with this viewpoint.',
-                upvotes: '845'
-            }
-        ]
+    const fetchPost = async () => {
+        if (!id) return;
+        const response = await postService.getPostById(id as string);
+        const postResponse = await response.json();
+        setPost(postResponse);
     };
+
+    useEffect(() => {
+        fetchPost();
+    }, [id]);
+
+    if (!post) return <div>Loading...</div>;
 
     return (
         <>
@@ -72,31 +36,33 @@ const PostDetail = () => {
                     <div className={styles.post}>
                         <div className={styles.voteContainer}>
                             <button className={styles.upvote}>▲</button>
-                            <span className={styles.voteCount}>{post.upvotes}</span>
+                            <span className={styles.voteCount}>{post.user.points}</span>
                             <button className={styles.downvote}>▼</button>
                         </div>
 
                         <div className={styles.postContent}>
                             <div className={styles.postHeader}>
-                                <span className={styles.subreddit}>r/{post.subreddit}</span>
+                                <span className={styles.user}>Posted by u/{post.user.username}</span>
                                 <span className={styles.dot}>•</span>
-                                <span className={styles.author}>Posted by u/{post.author}</span>
-                                <span className={styles.dot}>•</span>
-                                <span className={styles.time}>{post.timePosted}</span>
+                                <span className={styles.time}>
+                                    {new Date(post.createdAt).toLocaleString()}
+                                </span>
                             </div>
 
                             <h1 className={styles.postTitle}>{post.title}</h1>
 
-                            <div className={styles.postText}>
-                                {post.content.text.split('\n').map((paragraph, index) => (
-                                    <p key={index}>{paragraph}</p>
-                                ))}
-                            </div>
+                            {post.description && (
+                                <div className={styles.postText}>
+                                    {post.description.split('\n').map((paragraph, index) => (
+                                        <p key={index}>{paragraph}</p>
+                                    ))}
+                                </div>
+                            )}
 
                             <div className={styles.postActions}>
                                 <button className={styles.actionButton}>
                                     <span className={styles.actionIcon}>💬</span>
-                                    <span>{post.commentsCount} Comments</span>
+                                    <span>{post.comments.length} Comments</span>
                                 </button>
                                 <button className={styles.actionButton}>
                                     <span className={styles.actionIcon}>↻</span>
@@ -111,10 +77,10 @@ const PostDetail = () => {
                     </div>
 
                     <div className={styles.commentForm}>
-            <textarea
-                placeholder="What are your thoughts?"
-                className={styles.commentInput}
-            />
+                        <textarea
+                            placeholder="What are your thoughts?"
+                            className={styles.commentInput}
+                        />
                         <button className={styles.commentButton}>Comment</button>
                     </div>
 
@@ -125,19 +91,21 @@ const PostDetail = () => {
                             <span className={styles.sortOption}>New</span>
                         </div>
 
-                        {post.comments.map(comment => (
+                        {post.comments.map((comment: Comment) => (
                             <div key={comment.id} className={styles.comment}>
                                 <div className={styles.commentVotes}>
                                     <button className={styles.upvote}>▲</button>
-                                    <span className={styles.voteCount}>{comment.upvotes}</span>
+                                    <span className={styles.voteCount}>{comment.points}</span>
                                     <button className={styles.downvote}>▼</button>
                                 </div>
 
                                 <div className={styles.commentContent}>
                                     <div className={styles.commentHeader}>
-                                        <span className={styles.author}>u/{comment.author}</span>
+                                        <span className={styles.author}>u/{comment.createdBy.username}</span>
                                         <span className={styles.dot}>•</span>
-                                        <span className={styles.time}>{comment.timePosted}</span>
+                                        <span className={styles.time}>
+                                            {new Date(comment.createdAt).toLocaleString()}
+                                        </span>
                                     </div>
 
                                     <p className={styles.commentText}>{comment.text}</p>
@@ -159,7 +127,7 @@ const PostDetail = () => {
                             <h3>About Community</h3>
                         </div>
                         <div className={styles.communityDescription}>
-                            <p>Welcome to r/{post.subreddit}, a community for discussing...</p>
+                            <p>Welcome to this community for discussing...</p>
                         </div>
                         <div className={styles.communityStats}>
                             <div className={styles.statItem}>

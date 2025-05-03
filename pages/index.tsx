@@ -1,52 +1,24 @@
 import Head from 'next/head';
 import Header from '@components/header';
-import Post from '@components/post';
+import PostComponent from '@components/post';
 import styles from '@styles/home.module.css';
-
-interface PostData {
-    id: number;
-    title: string;
-    author: string;
-    subreddit: string;
-    upvotes: string;
-    commentsCount: string;
-    timePosted: string;
-    content: {
-        type: 'text' | 'image';
-        text?: string;
-        url?: string;
-    };
-}
+import { useEffect, useState } from 'react';
+import postService from '@services/PostService';
+import { Post } from '@types';
 
 const Home: React.FC = () => {
-    const posts: PostData[] = [
-        {
-            id: 1,
-            title: 'Just adopted this cute puppy!',
-            author: 'dog_lover42',
-            subreddit: 'aww',
-            upvotes: '1.2K',
-            commentsCount: '243',
-            timePosted: '5 hours ago',
-            content: {
-                type: 'image',
-                url: '/placeholder-puppy.jpg'
-            }
-        },
-        {
-            id: 2,
-            title: 'What do you think about the new JavaScript framework?',
-            author: 'dev_guy',
-            subreddit: 'programming',
-            upvotes: '892',
-            commentsCount: '421',
-            timePosted: '8 hours ago',
-            content: {
-                type: 'text',
-                text: 'I\'ve been exploring the new framework and it seems promising.'
-            }
-        }
-    ];
+    const [posts, setPosts] = useState<Post[]>([]);
+
+    const fetchPosts = async () => {
+        const response = await postService.getAllPosts();
+        const postResponse = await response.json();
+        setPosts(postResponse);
+        console.log(posts);
+    };
+
+    useEffect(() => {
+        fetchPosts();
+    }, []);
 
     return (
         <>
@@ -85,7 +57,7 @@ const Home: React.FC = () => {
 
                         <div className={styles.postsList}>
                             {posts.map(post => (
-                                <Post key={post.id} post={post} />
+                                <PostComponent key={post.id} post={post} />
                             ))}
                         </div>
                     </section>
