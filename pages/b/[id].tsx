@@ -39,7 +39,7 @@ const CommunityPage: React.FC = () => {
     return (
         <>
             <Head>
-                <title>Setback | b/{community.name}</title>
+                <title>Bluedit | b/{community.name}</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             </Head>
             <Header />

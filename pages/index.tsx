@@ -33,7 +33,7 @@ const Home: React.FC = () => {
     return (
         <>
             <Head>
-                <title>Setback | Home</title>
+                <title>Bluedit | Home</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             </Head>
             <Header />
@@ -66,7 +66,7 @@ const Home: React.FC = () => {
                     <aside className={styles.rightSidebar}>
                         <div className={styles.aboutCard}>
                             <h3>About Bluedit</h3>
-                            <p>Welcome to Setback, a Reddit-inspired platform for sharing and discussing content.</p>
+                            <p>Welcome to Bluedit, a Reddit-inspired platform for sharing and discussing content.</p>
                         </div>
 
                         {/*<div className={styles.trendingCard}>*/}

@@ -9,7 +9,7 @@ export type User = {
 export type Post = {
   id: number;
   title: string;
-  description?: string;
+  content?: string;
   user: User;
   comments: Comment[];
   createdAt: Date;

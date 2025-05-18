@@ -36,7 +36,7 @@ const PostDetail = () => {
     return (
         <>
             <Head>
-                <title>{post.title} | Setback</title>
+                <title>Post by {post.user.username} | Bluedit</title>
             </Head>
             <Header />
 
@@ -60,9 +60,9 @@ const PostDetail = () => {
 
                             <h1 className={styles.postTitle}>{post.title}</h1>
 
-                            {post.description && (
+                            {post.content && (
                                 <div className={styles.postText}>
-                                    {post.description.split('\n').map((paragraph, index) => (
+                                    {post.content.split('\n').map((paragraph, index) => (
                                         <p key={index}>{paragraph}</p>
                                     ))}
                                 </div>
@@ -130,32 +130,36 @@ const PostDetail = () => {
                     </div>
                 </div>
 
-                <aside className={styles.sidebar}>
-                    <div className={styles.communityCard}>
-                        <div className={styles.communityHeader}>
-                            <h3>About b/{community?.name.replaceAll(' ', '')}</h3>
-                        </div>
-                        <div className={styles.communityDescription}>
-                            <p>{community?.description}</p>
-                        </div>
-                        <div className={styles.communityStats}>
-                            <div className={styles.statItem}>
-                                <span className={styles.statNumber}>{community?.users.length}</span>
-                                <span className={styles.statLabel}>{community?.users.length == 1 ? "Member" : "Members"}</span>
+                {community && (
+                    <aside className={styles.sidebar}>
+                        <div className={styles.communityCard}>
+                            <div className={styles.communityHeader}>
+                                <h3>About b/{community.name.replaceAll(' ', '')}</h3>
                             </div>
-                            <div className={styles.statItem}>
-                                <span className={styles.statNumber}>{community?.posts.length}</span>
-                                <span className={styles.statLabel}>{community?.posts.length == 1 ? "Post" : "Posts"}</span>
+                            <div className={styles.communityDescription}>
+                                <p>{community.description}</p>
                             </div>
+                            <div className={styles.communityStats}>
+                                <div className={styles.statItem}>
+                                    <span className={styles.statNumber}>{community.users.length}</span>
+                                    <span
+                                        className={styles.statLabel}>{community.users.length == 1 ? "Member" : "Members"}</span>
+                                </div>
+                                <div className={styles.statItem}>
+                                    <span className={styles.statNumber}>{community.posts.length}</span>
+                                    <span
+                                        className={styles.statLabel}>{community.posts.length == 1 ? "Post" : "Posts"}</span>
+                                </div>
+                            </div>
+                            <button
+                                className={styles.joinButton}
+                                onClick={() => router.push(`/b/${community.id}`)}
+                            >
+                                Visit
+                            </button>
                         </div>
-                        <button
-                            className={styles.joinButton}
-                            onClick={() => router.push(`/b/${community?.id}`)}
-                        >
-                            Visit
-                        </button>
-                    </div>
-                </aside>
+                    </aside>
+                )}
             </main>
         </>
     );

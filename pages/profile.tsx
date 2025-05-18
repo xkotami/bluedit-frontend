@@ -7,17 +7,17 @@ const Profile: React.FC = () => {
     return (
         <>
             <Head>
-                <title>Setback | Profile</title>
+                <title>Bluedit | Profile</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             </Head>
             <Header />
             <main className={styles.main}>
                 <span>
-                    <h1>Setback</h1>
+                    <h1>Bluedit</h1>
                 </span>
 
                 <div className={styles.description}>
-                    <p>Welcome to the Setback platform.</p>
+                    <p>Welcome to the Bluedit platform.</p>
                 </div>
             </main>
         </>
