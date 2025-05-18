@@ -118,6 +118,44 @@
     border-color: #0079D3;
 }
 
+.postInputs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.postDescriptionInput {
+    padding: 8px;
+    border: 1px solid #EDEFF1;
+    border-radius: 4px;
+    background: #F6F7F8;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+}
+
+.postDescriptionInput:hover {
+    background: white;
+    border-color: #0079D3;
+}
+
+.createPostInput {
+    /* Modify existing style to remove flex:1 */
+    padding: 8px;
+    border: 1px solid #EDEFF1;
+    border-radius: 4px;
+    background: #F6F7F8;
+    font-size: 14px;
+    width: 100%;
+}
+
+.mediaButton[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .mediaButton {
     background: none;
     border: none;

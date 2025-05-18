@@ -12,6 +12,8 @@ const CommunityPage: React.FC = () => {
     const [community, setCommunity] = useState<Community | null>(null);
     const [posts, setPosts] = useState<Post[]>([]);
     const [isJoined, setIsJoined] = useState(false);
+    const [postTitle, setPostTitle] = useState('');
+    const [postDescription, setPostDescription] = useState('');
     const router = useRouter();
     const { id } = router.query;
 
@@ -34,6 +36,24 @@ const CommunityPage: React.FC = () => {
         // TODO: add join functionality
     };
 
+    const handleCreatePost = async () => {
+        if (!postTitle.trim()) return;
+
+        try {
+            // const response = await postService.createPost({
+            //     title: postTitle,
+            //     content: postDescription,
+            //     communityId: Number(id as string)
+            // });
+            // const newPost = await response.json();
+            // setPosts([newPost, ...posts]);
+            setPostTitle('');
+            setPostDescription('');
+        } catch (error) {
+            console.error('Error creating post:', error);
+        }
+    };
+
     if (!community) return <div>Loading...</div>;
 
     return (
@@ -47,7 +67,7 @@ const CommunityPage: React.FC = () => {
                 <div className={styles.headerContent}>
                     <div className={styles.communityInfo}>
                         <div className={styles.avatar}>b/{community.name.charAt(0).toUpperCase()}</div>
-                        <h1>b/{community.name}</h1>
+                        <h1>b/{community.name.replaceAll(' ', '')}</h1>
                     </div>
                     <button
                         className={`${styles.joinButton} ${isJoined ? styles.joined : ''}`}
@@ -61,15 +81,29 @@ const CommunityPage: React.FC = () => {
                 <div className={styles.content}>
                     <section className={styles.postsFeed}>
                         <div className={styles.createPostCard}>
-                            <div className={styles.userAvatar}>
-                                <span>👤</span>
+                            <div className={styles.postInputs}>
+                                <input
+                                    type="text"
+                                    placeholder={`Title`}
+                                    className={styles.createPostInput}
+                                    value={postTitle}
+                                    onChange={(e) => setPostTitle(e.target.value)}
+                                />
+                                <textarea
+                                    placeholder={`Description (optional)`}
+                                    className={styles.postDescriptionInput}
+                                    value={postDescription}
+                                    onChange={(e) => setPostDescription(e.target.value)}
+                                    rows={3}
+                                />
                             </div>
-                            <input
-                                type="text"
-                                placeholder={`Create a post in b/${community.name}`}
-                                className={styles.createPostInput}
-                            />
-                            <button className={styles.mediaButton}>📷</button>
+                            <button
+                                className={styles.mediaButton}
+                                onClick={handleCreatePost}
+                                disabled={!postTitle.trim()}
+                            >
+                                Post
+                            </button>
                         </div>
 
                         <div className={styles.postsList}>
@@ -81,16 +115,16 @@ const CommunityPage: React.FC = () => {
 
                     <aside className={styles.sidebar}>
                         <div className={styles.aboutCard}>
-                            <h3>About Community</h3>
+                            <h3>About b/{community.name.replaceAll(' ', '')}</h3>
                             <p>{community.description || 'No description available.'}</p>
                             <div className={styles.stats}>
                                 <div className={styles.statItem}>
                                     <span className={styles.statNumber}>{community.users.length || 0}</span>
                                     <span
-                                        className={styles.statLabel}>{community.users.length == 1 ? "Member" : "Members"}</span>
+                                        className={styles.statLabel}>{community.users.length == 1 ? 'Member' : 'Members'}</span>
                                 </div>
                                 <div className={styles.statItem}>
-                                    <span className={styles.statNumber}>{community.posts.length || 0}</span>
+                                <span className={styles.statNumber}>{community.posts.length || 0}</span>
                                     <span
                                         className={styles.statLabel}>{community.posts.length == 1 ? "Post" : "Posts"}</span>
                                 </div>
