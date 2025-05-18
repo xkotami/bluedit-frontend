@@ -12,16 +12,17 @@ export type Post = {
   description?: string;
   user: User;
   comments: Comment[];
+  createdAt: Date;
 }
 
 export type Comment = {
   id: number;
   text: string;
-  createdAt: Date;
   points: number;
   createdBy: User;
   replies: Comment[];
   parent?: Comment;
+  createdAt: Date;
 }
 
 export type Community = {
@@ -30,4 +31,5 @@ export type Community = {
   description: string;
   posts: Post[];
   users: User[];
+  createdAt: Date;
 }

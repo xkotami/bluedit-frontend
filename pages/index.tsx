@@ -4,20 +4,30 @@ import PostComponent from '@components/post';
 import styles from '@styles/home.module.css';
 import { useEffect, useState } from 'react';
 import postService from '@services/PostService';
-import { Post } from '@types';
+import { Community, Post } from '@types';
+import communityService from '@services/CommunityService';
+import { useRouter } from 'next/router';
 
 const Home: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
+    const [communities, setCommunities] = useState<Community[]>([]);
+    const router = useRouter();
 
     const fetchPosts = async () => {
         const response = await postService.getAllPosts();
         const postResponse = await response.json();
         setPosts(postResponse);
-        console.log(posts);
     };
+
+    const fetchCommunities = async () => {
+        const response = await communityService.getAllCommunities();
+        const communityResponse = await response.json();
+        setCommunities(communityResponse);
+    }
 
     useEffect(() => {
         fetchPosts();
+        fetchCommunities();
     }, []);
 
     return (
@@ -33,28 +43,19 @@ const Home: React.FC = () => {
                         <div className={styles.communitiesSection}>
                             <h3>Top Communities</h3>
                             <ul className={styles.communityList}>
-                                <li>r/AskReddit</li>
-                                <li>r/WorldNews</li>
-                                <li>r/Technology</li>
-                                <li>r/Gaming</li>
-                                <li>r/Movies</li>
+                                {communities.map((community) => (
+                                    <li
+                                        key={community.id}
+                                        onClick={() => router.push(`/b/${community.id}`)}
+                                    >
+                                        b/{community.name.replaceAll(' ', '')}
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                     </aside>
 
                     <section className={styles.postsFeed}>
-                        <div className={styles.createPostCard}>
-                            <div className={styles.userAvatar}>
-                                <span>👤</span>
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Create Post"
-                                className={styles.createPostInput}
-                            />
-                            <button className={styles.mediaButton}>📷</button>
-                        </div>
-
                         <div className={styles.postsList}>
                             {posts.map(post => (
                                 <PostComponent key={post.id} post={post} />
@@ -64,21 +65,20 @@ const Home: React.FC = () => {
 
                     <aside className={styles.rightSidebar}>
                         <div className={styles.aboutCard}>
-                            <h3>About Setback</h3>
+                            <h3>About Bluedit</h3>
                             <p>Welcome to Setback, a Reddit-inspired platform for sharing and discussing content.</p>
-                            <button className={styles.joinButton}>Join</button>
                         </div>
 
-                        <div className={styles.trendingCard}>
-                            <h3>Trending Today</h3>
-                            <ol className={styles.trendingList}>
-                                <li>#NewMovieRelease</li>
-                                <li>#TechConference2023</li>
-                                <li>#ScienceDiscovery</li>
-                                <li>#GamingNews</li>
-                                <li>#AMA</li>
-                            </ol>
-                        </div>
+                        {/*<div className={styles.trendingCard}>*/}
+                        {/*    <h3>Trending Today</h3>*/}
+                        {/*    <ol className={styles.trendingList}>*/}
+                        {/*        <li>#NewMovieRelease</li>*/}
+                        {/*        <li>#TechConference2023</li>*/}
+                        {/*        <li>#ScienceDiscovery</li>*/}
+                        {/*        <li>#GamingNews</li>*/}
+                        {/*        <li>#AMA</li>*/}
+                        {/*    </ol>*/}
+                        {/*</div>*/}
                     </aside>
                 </div>
             </main>

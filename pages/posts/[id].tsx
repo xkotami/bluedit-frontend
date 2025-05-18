@@ -3,23 +3,32 @@ import Head from 'next/head';
 import Header from '@components/header';
 import styles from '@styles/postDetail.module.css';
 import { useEffect, useState } from 'react';
-import { Post, Comment } from '@types';
+import { Post, Comment, Community } from '@types';
 import postService from '@services/PostService';
+import communityService from '@services/CommunityService';
 
 const PostDetail = () => {
     const [post, setPost] = useState<Post | null>(null);
+    const [community, setCommunity] = useState<Community | null>(null);
     const router = useRouter();
     const { id } = router.query;
 
     const fetchPost = async () => {
         if (!id) return;
-        const response = await postService.getPostById(id as string);
+        const response = await postService.getPostById(Number(id as string));
         const postResponse = await response.json();
         setPost(postResponse);
     };
 
+    const fetchCommunity = async () => {
+        const response = await communityService.findCommunityByPostId(Number(id as string));
+        const communityResponse = await response.json();
+        setCommunity(communityResponse);
+    }
+
     useEffect(() => {
         fetchPost();
+        fetchCommunity();
     }, [id]);
 
     if (!post) return <div>Loading...</div>;
@@ -124,7 +133,7 @@ const PostDetail = () => {
                 <aside className={styles.sidebar}>
                     <div className={styles.communityCard}>
                         <div className={styles.communityHeader}>
-                            <h3>About Community</h3>
+                            <h3>About b/{community?.name.replaceAll(' ', '')}</h3>
                         </div>
                         <div className={styles.communityDescription}>
                             <p>Welcome to this community for discussing...</p>
@@ -139,7 +148,12 @@ const PostDetail = () => {
                                 <span className={styles.statLabel}>Online</span>
                             </div>
                         </div>
-                        <button className={styles.joinButton}>Join</button>
+                        <button
+                            className={styles.joinButton}
+                            onClick={() => router.push(`/b/${community?.id}`)}
+                        >
+                            Visit
+                        </button>
                     </div>
                 </aside>
             </main>
