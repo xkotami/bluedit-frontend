@@ -136,16 +136,16 @@ const PostDetail = () => {
                             <h3>About b/{community?.name.replaceAll(' ', '')}</h3>
                         </div>
                         <div className={styles.communityDescription}>
-                            <p>Welcome to this community for discussing...</p>
+                            <p>{community?.description}</p>
                         </div>
                         <div className={styles.communityStats}>
                             <div className={styles.statItem}>
-                                <span className={styles.statNumber}>1.2M</span>
-                                <span className={styles.statLabel}>Members</span>
+                                <span className={styles.statNumber}>{community?.users.length}</span>
+                                <span className={styles.statLabel}>{community?.users.length == 1 ? "Member" : "Members"}</span>
                             </div>
                             <div className={styles.statItem}>
-                                <span className={styles.statNumber}>2.4K</span>
-                                <span className={styles.statLabel}>Online</span>
+                                <span className={styles.statNumber}>{community?.posts.length}</span>
+                                <span className={styles.statLabel}>{community?.posts.length == 1 ? "Post" : "Posts"}</span>
                             </div>
                         </div>
                         <button
