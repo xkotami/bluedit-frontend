@@ -25,9 +25,9 @@ const Post: React.FC<PostProps> = ({ post }) => {
                     <h3 className={styles.postTitle}>{post.title}</h3>
                 </Link>
 
-                {post.description && (
+                {post.content && (
                     <Link href={`/posts/${post.id}`} passHref>
-                        <p className={styles.postText}>{post.description}</p>
+                        <p className={styles.postText}>{post.content}</p>
                     </Link>
                 )}
 
