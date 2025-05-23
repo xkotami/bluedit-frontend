@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import styles from '@styles/header.module.css';
+import { useUser } from '../hooks/useUser';
 
 const Header: React.FC = () => {
+    const { userData, isUserLoading, userError } = useUser();
+
     return (
         <header className={styles.header}>
             <div>
@@ -9,9 +12,20 @@ const Header: React.FC = () => {
                     <Link href="/" className={styles.link}>
                         Home
                     </Link>
-                    <Link href="/profile" className={styles.link}>
-                        Profile
-                    </Link>
+                    {userData ? (
+                        <>
+                            <Link href="/profile" className={styles.link}>
+                                Profile
+                            </Link>
+                            <Link href="/logout" className={styles.link}>
+                                Log out
+                            </Link>
+                        </>
+                    ) : (
+                        <Link href="/login" className={styles.link}>
+                            Login
+                        </Link>
+                    )}
                 </nav>
             </div>
         </header>

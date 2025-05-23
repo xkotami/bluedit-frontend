@@ -7,6 +7,7 @@ import postService from '@services/PostService';
 import { Community, Post } from '@types';
 import communityService from '@services/CommunityService';
 import { useRouter } from 'next/router';
+import { useUser } from '../../hooks/useUser';
 
 const CommunityPage: React.FC = () => {
     const [community, setCommunity] = useState<Community | null>(null);
@@ -14,6 +15,7 @@ const CommunityPage: React.FC = () => {
     const [isJoined, setIsJoined] = useState(false);
     const [postTitle, setPostTitle] = useState('');
     const [postDescription, setPostDescription] = useState('');
+    const { userData, isUserLoading, userError } = useUser();
     const router = useRouter();
     const { id } = router.query;
 
@@ -82,28 +84,41 @@ const CommunityPage: React.FC = () => {
                     <section className={styles.postsFeed}>
                         <div className={styles.createPostCard}>
                             <div className={styles.postInputs}>
-                                <input
-                                    type="text"
-                                    placeholder={`Title`}
-                                    className={styles.createPostInput}
-                                    value={postTitle}
-                                    onChange={(e) => setPostTitle(e.target.value)}
-                                />
-                                <textarea
-                                    placeholder={`Description (optional)`}
-                                    className={styles.postDescriptionInput}
-                                    value={postDescription}
-                                    onChange={(e) => setPostDescription(e.target.value)}
-                                    rows={3}
-                                />
+                                {userData ? (
+                                    <>
+                                        <input
+                                            type="text"
+                                            placeholder={`Title`}
+                                            className={styles.createPostInput}
+                                            value={postTitle}
+                                            onChange={(e) => setPostTitle(e.target.value)}
+                                        />
+                                        <textarea
+                                            placeholder={`Description (optional)`}
+                                            className={styles.postDescriptionInput}
+                                            value={postDescription}
+                                            onChange={(e) => setPostDescription(e.target.value)}
+                                            rows={3}
+                                        />
+                                    </>
+                                ) : (
+                                    <input
+                                        type="text"
+                                        placeholder={`Log in to create posts`}
+                                        className={styles.createPostInput}
+                                        disabled={!userData}
+                                    />
+                                )}
                             </div>
-                            <button
-                                className={styles.mediaButton}
-                                onClick={handleCreatePost}
-                                disabled={!postTitle.trim()}
-                            >
-                                Post
-                            </button>
+                            {userData && (
+                                <button
+                                    className={styles.mediaButton}
+                                    onClick={handleCreatePost}
+                                    disabled={!postTitle.trim()}
+                                >
+                                    Post
+                                </button>
+                            )}
                         </div>
 
                         <div className={styles.postsList}>

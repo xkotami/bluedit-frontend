@@ -6,12 +6,14 @@ import { useEffect, useState } from 'react';
 import { Post, Comment, Community } from '@types';
 import postService from '@services/PostService';
 import communityService from '@services/CommunityService';
+import { useUser } from '../../hooks/useUser';
 
 const PostDetail = () => {
     const [post, setPost] = useState<Post | null>(null);
     const [community, setCommunity] = useState<Community | null>(null);
     const router = useRouter();
     const { id } = router.query;
+    const { userData, isUserLoading, userError } = useUser();
 
     const fetchPost = async () => {
         if (!id) return;
@@ -27,8 +29,10 @@ const PostDetail = () => {
     }
 
     useEffect(() => {
-        fetchPost();
-        fetchCommunity();
+        if (id) {
+            fetchPost();
+            fetchCommunity();
+        }
     }, [id]);
 
     if (!post) return <div>Loading...</div>;
@@ -87,10 +91,16 @@ const PostDetail = () => {
 
                     <div className={styles.commentForm}>
                         <textarea
-                            placeholder="What are your thoughts?"
+                            placeholder={userData ? 'What are your thoughts?' : 'Log in to leave comments'}
                             className={styles.commentInput}
+                            disabled={!userData}
                         />
-                        <button className={styles.commentButton}>Comment</button>
+                        <button
+                            className={styles.commentButton}
+                            disabled={!userData}
+                        >
+                            Comment
+                        </button>
                     </div>
 
                     <div className={styles.commentsSection}>

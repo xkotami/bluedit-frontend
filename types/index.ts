@@ -33,3 +33,9 @@ export type Community = {
   users: User[];
   createdAt: Date;
 }
+
+export interface UserData {
+  token: string
+  email: string
+  id: string
+}
