@@ -76,7 +76,7 @@ const Header: React.FC = () => {
                         </>
                     ) : (
                         <>
-                            <Link href="/communities" className={styles.link}>
+                            <Link href="/community" className={styles.link}>
                                 Communities
                             </Link>
                             <Link href="/login" className={styles.link}>
