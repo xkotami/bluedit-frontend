@@ -38,14 +38,14 @@ const createComment = async (input: { text: string; postId: number; userId: stri
     });
 };
 
-const createReply = async (input: string, postId: number, parentId: number, token: string) => {
-    return fetch(`${BASE_URL}/comments/reply`, {
+const createReply = async (input: { text: string, postId: number, parentId: number }, token: string) => {
+    return fetch(`${BASE_URL}/comment/reply`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ input, postId, parentId })
+        body: JSON.stringify({ input: input })
     });
 };
 

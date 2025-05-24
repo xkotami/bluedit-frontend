@@ -13,6 +13,7 @@ export type Post = {
   user: User;
   comments: Comment[];
   createdAt: Date;
+  points: number;
 }
 
 export type Comment = {
