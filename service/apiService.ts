@@ -104,7 +104,7 @@ export const userService = {
     // Login user
     login: async (email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            const response = await fetch(`${API_BASE_URL}/user/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -112,7 +112,25 @@ export const userService = {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Login failed');
+                console.log('Backend login error:', errorData); // Debug log
+                
+                // Handle both route-level and service-level errors
+                if (response.status === 500) {
+                    // Backend throws 500 for all errors, check the message
+                    if (errorData.message === 'ERROR_USER_NOT_FOUND') {
+                        throw new Error('User not found');
+                    } else if (errorData.message === 'ERROR_INVALID_CREDENTIALS') {
+                        throw new Error('Invalid email or password');
+                    } else {
+                        throw new Error(errorData.message || 'Login failed');
+                    }
+                } else if (response.status === 401) {
+                    throw new Error('Invalid credentials');
+                } else if (response.status === 404) {
+                    throw new Error('User not found');
+                } else {
+                    throw new Error(errorData.message || 'Login failed');
+                }
             }
 
             const data = await response.json();
@@ -125,17 +143,30 @@ export const userService = {
 
             return { success: true, data };
         } catch (error) {
-            return { 
-                success: false, 
-                error: error instanceof Error ? error.message : 'Login failed' 
-            };
+            let errorMessage = 'Login failed';
+            
+            if (error instanceof Error) {
+                if (error.message.includes('ERROR_USER_NOT_FOUND')) {
+                    errorMessage = 'User not found';
+                } else if (error.message.includes('ERROR_INVALID_CREDENTIALS')) {
+                    errorMessage = 'Invalid email or password';
+                } else if (error.message.includes('User not found')) {
+                    errorMessage = 'User not found';
+                } else if (error.message.includes('Invalid')) {
+                    errorMessage = 'Invalid email or password';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+            }
+
+            return { success: false, error: errorMessage };
         }
     },
 
     // Register user
     register: async (username: string, email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            const response = await fetch(`${API_BASE_URL}/user/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password }),
@@ -143,7 +174,21 @@ export const userService = {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Registration failed');
+                console.log('Backend register error:', errorData); // Debug log
+                
+                // Handle both route-level and service-level errors
+                if (response.status === 400) {
+                    throw new Error(errorData.message || 'User already exists');
+                } else if (response.status === 500) {
+                    // Backend might throw 500 for user exists error
+                    if (errorData.message === 'ERROR_USER_EXISTS') {
+                        throw new Error('User with this email or username already exists');
+                    } else {
+                        throw new Error(errorData.message || 'Registration failed');
+                    }
+                } else {
+                    throw new Error(errorData.message || 'Registration failed');
+                }
             }
 
             const data = await response.json();
@@ -156,17 +201,30 @@ export const userService = {
 
             return { success: true, data };
         } catch (error) {
-            return { 
-                success: false, 
-                error: error instanceof Error ? error.message : 'Registration failed' 
-            };
+            let errorMessage = 'Registration failed';
+            
+            if (error instanceof Error) {
+                if (error.message.includes('ERROR_USER_EXISTS')) {
+                    errorMessage = 'User with this email or username already exists';
+                } else if (error.message.includes('User with this email or username already exists')) {
+                    errorMessage = 'User with this email or username already exists';
+                } else if (error.message.includes('User already exists')) {
+                    errorMessage = 'User with this email or username already exists';
+                } else if (error.message.includes('ERROR_INVALID_EMAIL')) {
+                    errorMessage = 'Please enter a valid email address';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+            }
+
+            return { success: false, error: errorMessage };
         }
     },
 
     // Get all users
     getAllUsers: async (): Promise<ApiResponse<User[]>> => {
         try {
-            const response = await apiCall('/users');
+            const response = await apiCall('/user');
             
             if (!response.ok) {
                 throw new Error('Failed to fetch users');
@@ -185,7 +243,7 @@ export const userService = {
     // Get user by ID
     getUserById: async (id: number): Promise<ApiResponse<User>> => {
         try {
-            const response = await apiCall(`/users/${id}`);
+            const response = await apiCall(`/user/${id}`);
             
             if (!response.ok) {
                 throw new Error('User not found');
@@ -207,7 +265,7 @@ export const communityService = {
     // Get all communities
     getAllCommunities: async (): Promise<ApiResponse<Community[]>> => {
         try {
-            const response = await apiCall('/communities');
+            const response = await apiCall('/community');
             
             if (!response.ok) {
                 throw new Error('Failed to fetch communities');
@@ -226,7 +284,7 @@ export const communityService = {
     // Get community by ID
     getCommunityById: async (id: number): Promise<ApiResponse<Community>> => {
         try {
-            const response = await apiCall(`/communities/${id}`);
+            const response = await apiCall(`/community/${id}`);
             
             if (!response.ok) {
                 throw new Error('Community not found');
@@ -245,7 +303,7 @@ export const communityService = {
     // Create community
     createCommunity: async (name: string, description: string): Promise<ApiResponse<Community>> => {
         try {
-            const response = await apiCall('/communities', {
+            const response = await apiCall('/community', {
                 method: 'POST',
                 body: JSON.stringify({ name, description }),
             });
@@ -268,7 +326,7 @@ export const communityService = {
     // Get user's joined communities
     getUserCommunities: async (): Promise<ApiResponse<Community[]>> => {
         try {
-            const response = await apiCall('/communities/user');
+            const response = await apiCall('/community/user');
             
             if (!response.ok) {
                 throw new Error('Failed to fetch user communities');
@@ -287,8 +345,8 @@ export const communityService = {
     // Join community
     joinCommunity: async (communityId: number): Promise<ApiResponse<Community>> => {
         try {
-            const response = await apiCall(`/communities/${communityId}/join`, {
-                method: 'POST',
+            const response = await apiCall(`/community/join/${communityId}`, {
+                method: 'PUT',
             });
 
             if (!response.ok) {
@@ -309,8 +367,8 @@ export const communityService = {
     // Leave community
     leaveCommunity: async (communityId: number): Promise<ApiResponse<Community>> => {
         try {
-            const response = await apiCall(`/communities/${communityId}/leave`, {
-                method: 'POST',
+            const response = await apiCall(`/community/leave/${communityId}`, {
+                method: 'PUT',
             });
 
             if (!response.ok) {

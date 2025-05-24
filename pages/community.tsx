@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { isAuthenticated } from 'service/userService';
-import { communityService } from 'service/serviceFile';
+import { communityService } from 'service/apiService';
 import Header from '@components/header';
 
 
