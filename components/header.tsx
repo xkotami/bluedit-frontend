@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import styles from '@styles/header.module.css';
 import { useUser } from '../hooks/useUser';
+import React from 'react';
 
 const Header: React.FC = () => {
     const { userData, isUserLoading, userError } = useUser();
