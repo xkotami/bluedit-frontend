@@ -41,8 +41,9 @@ interface Comment {
 
 interface CommentInput {
     text: string;
-    userId?: number;
+    userId: number;
     postId: number;
+    parentId?: number; // For replies
 }
 
 interface ReplyInput {
@@ -85,6 +86,11 @@ export const clearAuthData = (): void => {
     localStorage.removeItem('userId');
 };
 
+export const getCurrentUserId = (): number | null => {
+    const userId = localStorage.getItem('userId');
+    return userId ? parseInt(userId) : null;
+};
+
 // Generic API call with auth
 const apiCall = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
     const token = getAuthToken();
@@ -97,6 +103,39 @@ const apiCall = async (endpoint: string, options: RequestInit = {}): Promise<Res
             ...options.headers,
         },
     });
+};
+
+// AUTH SERVICES
+export const authService = {
+    // Get current user info
+    getCurrentUser: async (): Promise<User> => {
+        try {
+            const response = await apiCall('/user/profile'); // Adjust endpoint as needed
+            
+            if (!response.ok) {
+                throw new Error('Failed to get current user');
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            // Fallback: construct user from stored data
+            const userId = localStorage.getItem('userId');
+            const userEmail = localStorage.getItem('userEmail');
+            
+            if (!userId || !userEmail) {
+                throw new Error('No user data available');
+            }
+
+            return {
+                id: parseInt(userId),
+                email: userEmail,
+                username: userEmail.split('@')[0], // Fallback username
+                points: 0,
+                password: '' // Don't store password
+            };
+        }
+    },
 };
 
 // USER SERVICES
@@ -392,7 +431,7 @@ export const postService = {
     // Get all posts
     getAllPosts: async (): Promise<ApiResponse<Post[]>> => {
         try {
-            const response = await apiCall('/posts');
+            const response = await apiCall('/post');
             
             if (!response.ok) {
                 throw new Error('Failed to fetch posts');
@@ -411,7 +450,7 @@ export const postService = {
     // Get post by ID
     getPostById: async (id: string): Promise<ApiResponse<Post>> => {
         try {
-            const response = await apiCall(`/posts/${id}`);
+            const response = await apiCall(`/post/${id}`);
             
             if (!response.ok) {
                 throw new Error('Post not found');
@@ -430,7 +469,7 @@ export const postService = {
     // Get posts by community
     getPostsByCommunity: async (communityId: string): Promise<ApiResponse<Post[]>> => {
         try {
-            const response = await apiCall(`/communities/${communityId}/posts`);
+            const response = await apiCall(`/post/community/${communityId}`);
             
             if (!response.ok) {
                 throw new Error('Failed to fetch community posts');
@@ -449,14 +488,16 @@ export const postService = {
     // Create post
     createPost: async (title: string, content: string, communityId: number): Promise<ApiResponse<Post>> => {
         try {
-            const response = await apiCall('/posts', {
+            const response = await apiCall('/post', {
                 method: 'POST',
                 body: JSON.stringify({ title, content, communityId }),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create post');
+                // Handle backend's inconsistent error format
+                const errorMessage = errorData.message || errorData.error || 'Failed to create post';
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
@@ -470,15 +511,16 @@ export const postService = {
     },
 };
 
-// COMMENT SERVICES
+// COMMENT SERVICES - FIXED TO MATCH YOUR BACKEND
 export const commentService = {
-    // Get comments by post
-    getCommentsByPost: async (postId: number): Promise<ApiResponse<Comment[]>> => {
+    // Get all comments
+    getAllComments: async (): Promise<ApiResponse<Comment[]>> => {
         try {
-            const response = await apiCall(`/posts/${postId}/comments`);
+            const response = await apiCall('/comment');
             
             if (!response.ok) {
-                throw new Error('Failed to fetch comments');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to fetch comments');
             }
 
             const data = await response.json();
@@ -491,22 +533,72 @@ export const commentService = {
         }
     },
 
-    // Create comment
-    createComment: async (text: string, postId: number): Promise<ApiResponse<Comment>> => {
+    // Get comments by post - FIXED ENDPOINT
+    getCommentsByPost: async (postId: number): Promise<ApiResponse<Comment[]>> => {
         try {
-            const response = await apiCall('/comments', {
-                method: 'POST',
-                body: JSON.stringify({ text, postId }),
-            });
-
+            const response = await apiCall(`/comment/post/${postId}`);
+            
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create comment');
+                throw new Error(errorData.message || 'Failed to fetch comments');
             }
 
             const data = await response.json();
             return { success: true, data };
         } catch (error) {
+            return { 
+                success: false, 
+                error: error instanceof Error ? error.message : 'Failed to fetch comments' 
+            };
+        }
+    },
+
+    // Get comment by ID
+    getCommentById: async (id: number): Promise<ApiResponse<Comment>> => {
+        try {
+            const response = await apiCall(`/comment/${id}`);
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Comment not found');
+            }
+
+            const data = await response.json();
+            return { success: true, data };
+        } catch (error) {
+            return { 
+                success: false, 
+                error: error instanceof Error ? error.message : 'Comment not found' 
+            };
+        }
+    },
+
+    // Create comment - FIXED TO MATCH BACKEND EXPECTATIONS
+    createComment: async (commentData: CommentInput): Promise<ApiResponse<Comment>> => {
+        try {
+            console.log('Creating comment with data:', commentData);
+            
+            const response = await apiCall('/comment', {
+                method: 'POST',
+                body: JSON.stringify({
+                    text: commentData.text,
+                    postId: commentData.postId,
+                    userId: commentData.userId,
+                    ...(commentData.parentId && { parentId: commentData.parentId })
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Comment creation failed:', response.status, errorData);
+                throw new Error(errorData.message || 'Failed to create comment');
+            }
+
+            const data = await response.json();
+            console.log('Comment created successfully:', data);
+            return { success: true, data };
+        } catch (error) {
+            console.error('Error creating comment:', error);
             return { 
                 success: false, 
                 error: error instanceof Error ? error.message : 'Failed to create comment' 
@@ -514,22 +606,32 @@ export const commentService = {
         }
     },
 
-    // Create reply
-    createReply: async (text: string, postId: number, parentId: number): Promise<ApiResponse<Comment>> => {
+    // Create reply - FIXED TO USE SAME ENDPOINT WITH PARENT ID
+    createReply: async (replyData: ReplyInput): Promise<ApiResponse<Comment>> => {
         try {
-            const response = await apiCall('/comments/reply', {
+            console.log('Creating reply with data:', replyData);
+            
+            const response = await apiCall('/comment', {
                 method: 'POST',
-                body: JSON.stringify({ text, postId, parentId }),
+                body: JSON.stringify({
+                    text: replyData.text,
+                    postId: replyData.postId,
+                    userId: replyData.userId,
+                    parentId: replyData.parentId
+                }),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
+                console.error('Reply creation failed:', response.status, errorData);
                 throw new Error(errorData.message || 'Failed to create reply');
             }
 
             const data = await response.json();
+            console.log('Reply created successfully:', data);
             return { success: true, data };
         } catch (error) {
+            console.error('Error creating reply:', error);
             return { 
                 success: false, 
                 error: error instanceof Error ? error.message : 'Failed to create reply' 
@@ -537,13 +639,49 @@ export const commentService = {
         }
     },
 
-    // Get user's comments
+    // Legacy method for backward compatibility - use createComment instead
+    createCommentLegacy: async (text: string, postId: number): Promise<ApiResponse<Comment>> => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+            return { 
+                success: false, 
+                error: 'User not authenticated' 
+            };
+        }
+
+        return commentService.createComment({
+            text,
+            postId,
+            userId
+        });
+    },
+
+    // Legacy method for backward compatibility - use createReply instead
+    createReplyLegacy: async (text: string, postId: number, parentId: number): Promise<ApiResponse<Comment>> => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+            return { 
+                success: false, 
+                error: 'User not authenticated' 
+            };
+        }
+
+        return commentService.createReply({
+            text,
+            postId,
+            userId,
+            parentId
+        });
+    },
+
+    // Get user's comments (if you have this endpoint)
     getUserComments: async (userId: number): Promise<ApiResponse<Comment[]>> => {
         try {
-            const response = await apiCall(`/users/${userId}/comments`);
+            const response = await apiCall(`/user/${userId}/comments`);
             
             if (!response.ok) {
-                throw new Error('Failed to fetch user comments');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to fetch user comments');
             }
 
             const data = await response.json();

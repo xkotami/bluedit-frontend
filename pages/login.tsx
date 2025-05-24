@@ -150,15 +150,15 @@ const Login: React.FC = () => {
 
             <form onSubmit={handleLogin}>
                 <div style={formGroupStyle}>
-                    <label htmlFor="username" style={labelStyle}>Username</label>
+                    <label htmlFor="email" style={labelStyle}>E-mail</label>
                     <input
                         type="text"
-                        id="username"
+                        id="email"
                         name="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         style={inputStyle}
-                        placeholder="Enter your username"
+                        placeholder="Enter your email"
                         required
                         onFocus={(e) => Object.assign(e.target.style, inputFocusStyle)}
                         onBlur={(e) => Object.assign(e.target.style, inputStyle)} />
