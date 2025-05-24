@@ -4,15 +4,7 @@ import Head from 'next/head';
 import Header from '@components/header';
 import { isAuthenticated } from 'service/userService';
 import { communityService, postService } from 'service/apiService';
-
-interface Community {
-    id?: number;
-    posts: any[];
-    users: any[];
-    name: string;
-    description: string;
-    createdAt: Date;
-}
+import { Community } from '@types';
 
 const CreatePostPage: React.FC = () => {
     const [title, setTitle] = useState('');

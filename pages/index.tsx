@@ -4,34 +4,7 @@ import Head from 'next/head';
 import Header from '@components/header';
 import styles from '@styles/home.module.css';
 import { isAuthenticated, postService } from 'service/apiService';
-
-
-interface User {
-    id?: number;
-    username: string;
-    email: string;
-    points: number;
-    password: string;
-}
-
-interface Comment {
-    id?: number;
-    text: string;
-    createdAt: Date;
-    points: number;
-    createdBy: User;
-    parent?: Comment;
-    replies: Comment[];
-}
-
-interface Post {
-    id?: number;
-    title: string;
-    content: string;
-    user: User;
-    comments: Comment[];
-    createdAt: Date;
-}
+import { Post } from '@types';
 
 const Home: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);

@@ -4,33 +4,7 @@ import Head from 'next/head';
 import Header from '@components/header';
 import styles from '@styles/profile.module.css';
 import { userService, postService, commentService, isAuthenticated } from 'service/apiService';
-
-interface User {
-    id?: number;
-    username: string;
-    email: string;
-    points: number;
-    password: string;
-}
-
-interface Post {
-    id?: number;
-    title: string;
-    content: string;
-    user: User;
-    comments: Comment[];
-    createdAt: Date;
-}
-
-interface Comment {
-    id?: number;
-    text: string;
-    createdAt: Date;
-    points: number;
-    createdBy: User;
-    parent?: Comment;
-    replies: Comment[];
-}
+import { Post, User, Comment } from '@types';
 
 const Profile: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);

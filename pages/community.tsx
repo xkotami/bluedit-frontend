@@ -3,16 +3,7 @@ import { useRouter } from 'next/router';
 import { isAuthenticated } from 'service/userService';
 import { communityService } from 'service/apiService';
 import Header from '@components/header';
-
-
-interface Community {
-    id?: number;
-    name: string;
-    description: string;
-    posts: any[];
-    users: any[];
-    createdAt: Date;
-}
+import { Community } from '@types';
 
 const CommunityListPage: React.FC = () => {
     const [communities, setCommunities] = useState<Community[]>([]);

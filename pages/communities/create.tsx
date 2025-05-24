@@ -4,7 +4,6 @@ import Head from 'next/head';
 import Header from '@components/header';
 import { communityService, isAuthenticated } from 'service/apiService';
 
-
 const CreateCommunityPage: React.FC = () => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -34,7 +33,7 @@ const CreateCommunityPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!name.trim() || !description.trim()) {
             setError('Please fill in all fields');
             return;
@@ -51,7 +50,7 @@ const CreateCommunityPage: React.FC = () => {
 
         try {
             const result = await communityService.createCommunity(name.trim(), description.trim());
-            
+
             if (result.success && result.data) {
                 // Redirect to the created community or communities list
                 router.push(`/community`);
@@ -256,12 +255,12 @@ const CreateCommunityPage: React.FC = () => {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             </Head>
             <Header />
-            
+
             <div style={containerStyle}>
                 <a href="/community" style={backButtonStyle}>
                     ← Back to Communities
                 </a>
-                
+
                 <div style={headerStyle}>
                     <h1 style={titleStyle}>Create a New Community</h1>
                     <p style={subtitleStyle}>
@@ -350,9 +349,9 @@ const CreateCommunityPage: React.FC = () => {
                     >
                         {loading ? (
                             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                <span style={{ 
-                                    width: '16px', 
-                                    height: '16px', 
+                                <span style={{
+                                    width: '16px',
+                                    height: '16px',
                                     border: '2px solid #ffffff40',
                                     borderTop: '2px solid #ffffff',
                                     borderRadius: '50%',

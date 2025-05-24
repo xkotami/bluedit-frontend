@@ -3,33 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '@components/header';
 import { commentService, isAuthenticated, postService, authService } from 'service/apiService';
-
-interface User {
-    id?: number;
-    username: string;
-    email: string;
-    points: number;
-    password: string;
-}
-
-interface Comment {
-    id?: number;
-    text: string;
-    createdAt: Date;
-    points: number;
-    createdBy: User;
-    parent?: Comment;
-    replies: Comment[];
-}
-
-interface Post {
-    id?: number;
-    title: string;
-    content: string;
-    user: User;
-    comments: Comment[];
-    createdAt: Date;
-}
+import { Post, User, Comment } from '@types';
 
 const PostDetailPage: React.FC = () => {
     const [post, setPost] = useState<Post | null>(null);

@@ -3,43 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '@components/header';
 import { communityService, isAuthenticated, postService } from 'service/apiService';
-
-
-interface User {
-    id?: number;
-    username: string;
-    email: string;
-    points: number;
-    password: string;
-}
-
-interface Comment {
-    id?: number;
-    text: string;
-    createdAt: Date;
-    points: number;
-    createdBy: User;
-    parent?: Comment;
-    replies: Comment[];
-}
-
-interface Post {
-    id?: number;
-    title: string;
-    content: string;
-    user: User;
-    comments: Comment[];
-    createdAt: Date;
-}
-
-interface Community {
-    id?: number;
-    posts: Post[];
-    users: User[];
-    name: string;
-    description: string;
-    createdAt: Date;
-}
+import { Community, Post } from '@types';
 
 const CommunityDetailPage: React.FC = () => {
     const [community, setCommunity] = useState<Community | null>(null);
@@ -82,7 +46,7 @@ const CommunityDetailPage: React.FC = () => {
             const result = await postService.getPostsByCommunity(id as string);
             if (result.success && result.data) {
                 // Sort posts by newest first
-                const sortedPosts = result.data.sort((a, b) => 
+                const sortedPosts = result.data.sort((a, b) =>
                     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 );
                 setPosts(sortedPosts);
@@ -426,16 +390,16 @@ const CommunityDetailPage: React.FC = () => {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             </Head>
             <Header />
-            
+
             <div style={containerStyle}>
-                <a href="/communities" style={backButtonStyle}>
+                <a href="/community" style={backButtonStyle}>
                     ← Back to Communities
                 </a>
 
                 {/* Community Header */}
                 <div style={communityHeaderStyle}>
                     <h1 style={communityTitleStyle}>r/{community.name}</h1>
-                    
+
                     <div style={communityStatsStyle}>
                         <div style={statStyle}>
                             <span>👥</span>
@@ -481,7 +445,7 @@ const CommunityDetailPage: React.FC = () => {
                                         {joinLoading ? 'Joining...' : 'Join Community'}
                                     </button>
                                 )}
-                                
+
                                 {isUserInCommunity() && (
                                     <a href="/posts/create" style={createPostButtonStyle}>
                                         Create Post
