@@ -15,16 +15,27 @@ const CommunityPage: React.FC = () => {
     const [isJoined, setIsJoined] = useState(false);
     const [postTitle, setPostTitle] = useState('');
     const [postDescription, setPostDescription] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [joinLoading, setJoinLoading] = useState(false);
     const { userData, isUserLoading, userError } = useUser();
     const router = useRouter();
     const { id } = router.query;
 
     const fetchCommunityData = async () => {
-        const response = await communityService.getCommunityById(Number(id as string));
-        const communityResponse = await response.json();
-        setCommunity(communityResponse);
-        setPosts(communityResponse.posts);
-        console.log(communityResponse);
+        try {
+            setLoading(true);
+            const response = await communityService.getCommunityById(Number(id as string));
+            const communityResponse = await response.json();
+            setCommunity(communityResponse);
+            setPosts(communityResponse.posts);
+            console.log(communityResponse);
+            setError('');
+        } catch (err) {
+            setError('Failed to load community');
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -33,9 +44,23 @@ const CommunityPage: React.FC = () => {
         }
     }, [id]);
 
-    const handleJoinToggle = () => {
-        setIsJoined(!isJoined);
-        // TODO: add join functionality
+    const handleJoinToggle = async () => {
+        if (!userData) {
+            router.push('/login');
+            return;
+        }
+
+        setJoinLoading(true);
+        try {
+            // TODO: Implement actual join/leave functionality
+            setIsJoined(!isJoined);
+            setError('');
+        } catch (error) {
+            setError('Failed to update membership');
+            console.error('Error toggling membership:', error);
+        } finally {
+            setJoinLoading(false);
+        }
     };
 
     const handleCreatePost = async () => {
@@ -56,7 +81,27 @@ const CommunityPage: React.FC = () => {
         }
     };
 
-    if (!community) return <div>Loading...</div>;
+    if (loading) {
+        return (
+            <>
+                <Header />
+                <div className={styles.container}>
+                    <div className={styles.loading}>Loading community...</div>
+                </div>
+            </>
+        );
+    }
+
+    if (!community) {
+        return (
+            <>
+                <Header />
+                <div className={styles.container}>
+                    <div className={styles.error}>Community not found</div>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
@@ -65,20 +110,40 @@ const CommunityPage: React.FC = () => {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             </Head>
             <Header />
+
+            {error && (
+                <div className={styles.error}>
+                    {error}
+                </div>
+            )}
+
             <div className={styles.communityHeader}>
                 <div className={styles.headerContent}>
                     <div className={styles.communityInfo}>
-                        <div className={styles.avatar}>b/{community.name.charAt(0).toUpperCase()}</div>
-                        <h1>b/{community.name.replaceAll(' ', '')}</h1>
+                        <div className={styles.avatar}>
+                            b/{community.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <h1 className={styles.communityTitle}>
+                                b/{community.name.replaceAll(' ', '')}
+                            </h1>
+                            <div className={styles.communityStats}>
+                                {community.users?.length || 0} members • {community.posts?.length || 0} posts
+                            </div>
+                        </div>
                     </div>
-                    <button
-                        className={`${styles.joinButton} ${isJoined ? styles.joined : ''}`}
-                        onClick={handleJoinToggle}
-                    >
-                        {isJoined ? 'Joined' : 'Join'}
-                    </button>
+                    {userData && (
+                        <button
+                            className={`${styles.joinButton} ${isJoined ? styles.joined : ''}`}
+                            onClick={handleJoinToggle}
+                            disabled={joinLoading}
+                        >
+                            {joinLoading ? (isJoined ? 'Leaving...' : 'Joining...') : (isJoined ? 'Leave' : 'Join')}
+                        </button>
+                    )}
                 </div>
             </div>
+
             <main className={styles.mainContainer}>
                 <div className={styles.content}>
                     <section className={styles.postsFeed}>
@@ -88,13 +153,13 @@ const CommunityPage: React.FC = () => {
                                     <>
                                         <input
                                             type="text"
-                                            placeholder={`Title`}
+                                            placeholder="Create a post"
                                             className={styles.createPostInput}
                                             value={postTitle}
                                             onChange={(e) => setPostTitle(e.target.value)}
                                         />
                                         <textarea
-                                            placeholder={`Description (optional)`}
+                                            placeholder="Text (optional)"
                                             className={styles.postDescriptionInput}
                                             value={postDescription}
                                             onChange={(e) => setPostDescription(e.target.value)}
@@ -104,15 +169,15 @@ const CommunityPage: React.FC = () => {
                                 ) : (
                                     <input
                                         type="text"
-                                        placeholder={`Log in to create posts`}
-                                        className={styles.createPostInput}
-                                        disabled={!userData}
+                                        placeholder="Log in to create posts"
+                                        className={`${styles.createPostInput} ${styles.disabled}`}
+                                        disabled
                                     />
                                 )}
                             </div>
                             {userData && (
                                 <button
-                                    className={styles.mediaButton}
+                                    className={styles.postButton}
                                     onClick={handleCreatePost}
                                     disabled={!postTitle.trim()}
                                 >
@@ -122,26 +187,36 @@ const CommunityPage: React.FC = () => {
                         </div>
 
                         <div className={styles.postsList}>
-                            {posts.map(post => (
-                                <PostComponent key={post.id} post={post} />
-                            ))}
+                            {posts.length > 0 ? (
+                                posts.map(post => (
+                                    <PostComponent key={post.id} post={post} />
+                                ))
+                            ) : (
+                                <div className={styles.noPosts}>
+                                    No posts yet. Be the first to post in this community!
+                                </div>
+                            )}
                         </div>
                     </section>
 
                     <aside className={styles.sidebar}>
                         <div className={styles.aboutCard}>
                             <h3>About b/{community.name.replaceAll(' ', '')}</h3>
-                            <p>{community.description || 'No description available.'}</p>
+                            <p className={styles.communityDescription}>
+                                {community.description || 'No description available.'}
+                            </p>
                             <div className={styles.stats}>
                                 <div className={styles.statItem}>
-                                    <span className={styles.statNumber}>{community.users.length || 0}</span>
-                                    <span
-                                        className={styles.statLabel}>{community.users.length == 1 ? 'Member' : 'Members'}</span>
+                                    <span className={styles.statNumber}>{community.users?.length || 0}</span>
+                                    <span className={styles.statLabel}>
+                                        {(community.users?.length || 0) === 1 ? 'Member' : 'Members'}
+                                    </span>
                                 </div>
                                 <div className={styles.statItem}>
-                                <span className={styles.statNumber}>{community.posts.length || 0}</span>
-                                    <span
-                                        className={styles.statLabel}>{community.posts.length == 1 ? "Post" : "Posts"}</span>
+                                    <span className={styles.statNumber}>{community.posts?.length || 0}</span>
+                                    <span className={styles.statLabel}>
+                                        {(community.posts?.length || 0) === 1 ? 'Post' : 'Posts'}
+                                    </span>
                                 </div>
                             </div>
                             <div className={styles.createdDate}>

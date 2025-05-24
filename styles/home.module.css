@@ -1,4 +1,3 @@
-
 .mainContainer {
     background-color: #DAE0E6;
     min-height: 100vh;
@@ -21,13 +20,158 @@
     flex: 0 0 312px;
 }
 
-
 .postsFeed {
     flex: 1;
     min-width: 0;
 }
 
+/* New styles for improved post feed */
+.feedContainer {
+    max-width: 800px;
+    margin: 0 auto;
+}
 
+.loadingState {
+    text-align: center;
+    padding: 60px 20px;
+    font-size: 18px;
+    color: #666;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.errorState {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #f5c6cb;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.emptyState h3 {
+    margin-bottom: 12px;
+    font-size: 20px;
+    color: #333;
+}
+
+.emptyState p {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.postCard {
+    background-color: white;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease, transform 0.1s ease;
+    cursor: pointer;
+}
+
+.postCard:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.postHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #666;
+}
+
+.community {
+    color: #007bff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.author {
+    color: #333;
+    font-weight: 500;
+}
+
+.points {
+    color: #28a745;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.dot {
+    margin: 0 8px;
+    color: #ccc;
+}
+
+.postTitle {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+    line-height: 1.3;
+    margin-top: 0;
+}
+
+.postContent {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.postStats {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 14px;
+    color: #666;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.createPostButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s ease;
+}
+
+.createPostButton:hover {
+    background-color: #0056b3;
+}
+
+.createPostFooter {
+    text-align: center;
+    margin-top: 40px;
+    padding-bottom: 40px;
+}
+
+/* Existing styles */
 .createPostCard {
     background: white;
     border-radius: 4px;
@@ -165,5 +309,18 @@
 @media (max-width: 640px) {
     .rightSidebar {
         display: none;
+    }
+
+    .content {
+        padding: 10px;
+    }
+
+    .feedContainer {
+        padding: 0;
+    }
+
+    .postCard {
+        margin-bottom: 12px;
+        padding: 16px;
     }
 }
