@@ -7,6 +7,7 @@ import { Post, Comment, Community } from '@types';
 import postService from '@services/PostService';
 import communityService from '@services/CommunityService';
 import { useUser } from '../../hooks/useUser';
+import commentService from '@services/CommentService';
 
 const PostDetail = () => {
     const [post, setPost] = useState<Post | null>(null);
@@ -17,6 +18,7 @@ const PostDetail = () => {
     const [submitting, setSubmitting] = useState(false);
     const [replyingTo, setReplyingTo] = useState<number | null>(null);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState<boolean>(false);
     const router = useRouter();
     const { id } = router.query;
     const { userData, isUserLoading, userError } = useUser();
@@ -61,36 +63,73 @@ const PostDetail = () => {
 
     const handleCreateComment = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!commentText.trim() || !post?.id || !userData?.id) return;
+        if (!commentText.trim() || !post?.id) return;
+
+        if (!userData) {
+            router.push('/login');
+            return;
+        }
 
         setSubmitting(true);
-        setError('');
+        setError(''); // Clear previous errors
 
         try {
-            // Add your comment creation logic here
-            setCommentText('');
-            await fetchPost(); // Refresh post to get new comment
+            const commentData = {
+                text: commentText.trim(),
+                postId: post.id,
+                userId: userData.id
+            };
+            const response = await commentService.createComment(commentData, userData.token);
+            const commentResponse = await response.json();
+
+            if (commentResponse) {
+                setCommentText('');
+                await fetchPost(); // Refresh post to get new comment
+                console.log('Comment created successfully');
+            } else {
+                const errorMessage = commentResponse.error || 'Failed to create comment';
+                setError(errorMessage);
+                console.error('Failed to create comment:', errorMessage);
+            }
         } catch (err: any) {
-            setError(err?.message || 'Failed to create comment');
+            const errorMessage = err?.message || 'Failed to create comment';
+            setError(errorMessage);
+            console.error('Error creating comment:', err);
         } finally {
             setSubmitting(false);
         }
     };
 
-    const handleCreateReply = async (parentCommentId: number) => {
+    const handleCreateReply = async (parentCommentId: number, postId: number) => {
         const replyText = replyTexts[parentCommentId];
-        if (!replyText?.trim() || !post?.id || !userData?.id) return;
+        if (!replyText?.trim()) return;
+
+        if (!userData) {
+            router.push('/login');
+            return;
+        }
 
         setReplyingTo(parentCommentId);
-        setError('');
+        setError(''); // Clear previous errors
 
         try {
-            // Add your reply creation logic here
-            setReplyTexts(prev => ({...prev, [parentCommentId]: ''}));
-            setShowReplyForms(prev => ({...prev, [parentCommentId]: false}));
-            await fetchPost(); // Refresh post to get new reply
+            const response = await commentService.createReply(replyText.trim(), postId, parentCommentId, userData.token);
+            const replyResponse = await response.json();
+
+            if (replyResponse) {
+                setReplyTexts(prev => ({...prev, [parentCommentId]: ''}));
+                setShowReplyForms(prev => ({...prev, [parentCommentId]: false}));
+                await fetchPost(); // Refresh post to get new reply
+                console.log('Reply created successfully');
+            } else {
+                const errorMessage = replyResponse.error || 'Failed to create reply';
+                setError(errorMessage);
+                console.error('Failed to create reply:', errorMessage);
+            }
         } catch (err: any) {
-            setError(err?.message || 'Failed to create reply');
+            const errorMessage = err?.message || 'Failed to create reply';
+            setError(errorMessage);
+            console.error('Error creating reply:', err);
         } finally {
             setReplyingTo(null);
         }
@@ -106,6 +145,41 @@ const PostDetail = () => {
         }
     };
 
+    // Function to organize comments into a tree structure
+    const organizeComments = (comments: Comment[]): Comment[] => {
+        if (!comments) return [];
+
+        const commentMap = new Map<number, Comment>();
+        const topLevelComments: Comment[] = [];
+
+        // First pass: create a map of all comments
+        comments.forEach(comment => {
+            commentMap.set(comment.id, {
+                ...comment,
+                replies: []
+            });
+        });
+
+        // Second pass: organize into tree structure
+        comments.forEach(comment => {
+            if (comment.parent && comment.parent.id) {
+                // This is a reply, add it to its parent's replies
+                const parentComment = commentMap.get(comment.parent.id);
+                if (parentComment) {
+                    if (!parentComment.replies) {
+                        parentComment.replies = [];
+                    }
+                    parentComment.replies.push(commentMap.get(comment.id)!);
+                }
+            } else {
+                // This is a top-level comment
+                topLevelComments.push(commentMap.get(comment.id)!);
+            }
+        });
+
+        return topLevelComments;
+    };
+
     // Recursive component to render threaded comments
     const CommentComponent: React.FC<{comment: Comment, depth: number}> = ({ comment, depth }) => {
         return (
@@ -113,7 +187,7 @@ const PostDetail = () => {
                 <div className={styles.commentCard}>
                     <div className={styles.commentVotes}>
                         <button className={styles.upvote}>▲</button>
-                        <span className={styles.voteCount}>{comment.points}</span>
+                        <span className={styles.voteCount}>{comment.points || 0}</span>
                         <button className={styles.downvote}>▼</button>
                     </div>
 
@@ -158,7 +232,7 @@ const PostDetail = () => {
                                 />
                                 <div className={styles.replyFormActions}>
                                     <button
-                                        onClick={() => handleCreateReply(comment.id!)}
+                                        onClick={() => handleCreateReply(comment.id, Number(id as string))}
                                         disabled={replyingTo === comment.id || !replyTexts[comment.id!]?.trim()}
                                         className={styles.submitReplyButton}
                                     >
@@ -177,7 +251,7 @@ const PostDetail = () => {
                 </div>
 
                 {/* Render Replies */}
-                {comment.replies && comment.replies.map(reply => (
+                {comment.replies && comment.replies.length > 0 && comment.replies.map(reply => (
                     <CommentComponent
                         key={reply.id}
                         comment={reply}
@@ -190,7 +264,8 @@ const PostDetail = () => {
 
     if (!post) return <div className={styles.loading}>Loading...</div>;
 
-    const topLevelComments = post.comments?.filter(comment => !comment.parent) || [];
+    // Use the new organizeComments function
+    const organizedComments = organizeComments(post.comments || []);
 
     return (
         <>
@@ -214,7 +289,7 @@ const PostDetail = () => {
                     <div className={styles.postCard}>
                         <div className={styles.voteContainer}>
                             <button className={styles.upvote}>▲</button>
-                            <span className={styles.voteCount}>{post.user.points}</span>
+                            <span className={styles.voteCount}>{post.points || 0}</span>
                             <button className={styles.downvote}>▼</button>
                         </div>
 
@@ -241,7 +316,7 @@ const PostDetail = () => {
                             <div className={styles.postStats}>
                                 <div className={styles.statItem}>
                                     <span>▲</span>
-                                    <span>{post.comments?.length || 0}</span>
+                                    <span>{post.points || 0}</span>
                                 </div>
                                 <div className={styles.statItem}>
                                     <span>💬</span>
@@ -254,7 +329,7 @@ const PostDetail = () => {
                     {/* Comments Section */}
                     <div className={styles.commentSection}>
                         <h3 className={styles.commentSectionTitle}>
-                            Comments ({topLevelComments.length})
+                            Comments ({organizedComments.length})
                         </h3>
 
                         {/* Comment Form */}
@@ -293,9 +368,9 @@ const PostDetail = () => {
                             </div>
 
                             {/* Comments List */}
-                            {topLevelComments.length > 0 ? (
+                            {organizedComments.length > 0 ? (
                                 <div>
-                                    {topLevelComments.map(comment => (
+                                    {organizedComments.map(comment => (
                                         <CommentComponent
                                             key={comment.id}
                                             comment={comment}

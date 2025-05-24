@@ -27,8 +27,32 @@ const getCommentByUserId = async (id: number) => {
     });
 };
 
+const createComment = async (input: { text: string; postId: number; userId: string }, token: string) => {
+    return fetch(`${BASE_URL}/comment/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({input: input})
+    });
+};
+
+const createReply = async (input: string, postId: number, parentId: number, token: string) => {
+    return fetch(`${BASE_URL}/comments/reply`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ input, postId, parentId })
+    });
+};
+
 export default {
     getAllComments,
     getCommentById,
     getCommentByUserId,
+    createComment,
+    createReply,
 }
