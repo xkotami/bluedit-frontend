@@ -428,7 +428,7 @@ const CommunityDetailPage: React.FC = () => {
             <Header />
             
             <div style={containerStyle}>
-                <a href="/communities" style={backButtonStyle}>
+                <a href="/community" style={backButtonStyle}>
                     ← Back to Communities
                 </a>
 

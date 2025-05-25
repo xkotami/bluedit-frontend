@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import styles from '@styles/header.module.css';
-import { clearAuthData, isAuthenticated } from 'service/userService';
-
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { clearAuthData, isAuthenticated } from '../service/userService';
 
 const Header: React.FC = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -15,7 +14,7 @@ const Header: React.FC = () => {
         const checkAuth = () => {
             const authenticated = isAuthenticated();
             setIsLoggedIn(authenticated);
-            
+
             if (authenticated) {
                 const email = localStorage.getItem('userEmail');
                 setUserEmail(email || '');
@@ -33,59 +32,48 @@ const Header: React.FC = () => {
         return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
-    const logout = () => {
-        // Clear all auth data from localStorage
-        clearAuthData();
-        
-        // Update local state
-        setIsLoggedIn(false);
-        setUserEmail('');
-        
-        // Redirect to home page
-        router.push('/');
-    };
+    // Helper to check active route
+    const isActive = (pathname: string) => router.pathname === pathname;
 
     return (
         <header className={styles.header}>
-            <div>
+            <div className={styles.container}>
+                <div className={styles.logo}>
+                    <Link href="/"><img src={"/images/logo.png"} alt={"logo"}/></Link>
+                </div>
                 <nav className={styles.nav}>
-                    <Link href="/" className={styles.link}>
+                    <Link href="/" className={`${styles.link} ${isActive('/') ? styles.active : ''}`}>
                         Home
                     </Link>
-                    
+                    <Link href="/community" className={`${styles.link} ${isActive('/community') ? styles.active : ''}`}>
+                        Community
+                    </Link>
                     {isLoggedIn ? (
                         <>
-                            <Link href="/community" className={styles.link}>
-                                Communities
-                            </Link>
-                            <Link href="/posts/create" className={styles.link}>
-                                Create Post
-                            </Link>
-                            <Link href="/profile" className={styles.link}>
+                            <Link href="/profile" className={`${styles.link} ${isActive('/profile') ? styles.active : ''}`}>
                                 Profile
                             </Link>
-                            <span className={styles.userInfo}>
-                                {userEmail}
-                            </span>
-                            <button 
-                                className={styles.logoutButton} 
-                                onClick={logout}
+                            <button
+                                className={`${styles.logout}`}
+                                onClick={() => {
+                                    // Clear all auth data from localStorage
+                                    clearAuthData();
+
+                                    // Update local state
+                                    setIsLoggedIn(false);
+                                    setUserEmail('');
+
+                                    // Redirect to home page
+                                    router.push('/');
+                                }}
                             >
                                 Logout
                             </button>
                         </>
                     ) : (
-                        <>
-                            <Link href="/community" className={styles.link}>
-                                Communities
-                            </Link>
-                            <Link href="/login" className={styles.link}>
-                                Login
-                            </Link>
-                            <Link href="/signup" className={styles.link}>
-                                Sign Up
-                            </Link>
-                        </>
+                        <Link href="/login" className={`${styles.link} ${styles.cta} ${isActive('/login') ? styles.active : ''}`}>
+                            Login
+                        </Link>
                     )}
                 </nav>
             </div>
