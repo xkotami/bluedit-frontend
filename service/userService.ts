@@ -18,11 +18,11 @@ interface AuthData {
     userId: string | null;
 }
 
-const API_BASE_URL = 'http://localhost:3000'; // Replace with your backend URL
+// Replace with your backend URL
 
 export const loginUser = async (email: string, password: string): Promise<LoginResult> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/user/login`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

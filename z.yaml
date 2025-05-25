@@ -1,0 +1,44 @@
+name: Deploy Functions and Frontend
+on:
+  push:
+    branches:
+      - main
+
+
+env:               
+  NODE_VERSION: '18.x'
+
+jobs:
+  build-and-deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+      
+    - name: Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install Frontend Dependencies
+      run: npm ci
+    
+    - name: Build Next.js Static Site
+      run: npm run build
+      env:
+        NEXT_PUBLIC_API_BASE_URL: https://cne-functions.azurewebsites.net/api
+    
+    - name: Upload to Azure Blob Storage
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.30.0
+        inlineScript: |
+          # Upload all files from out directory to $web container
+          az storage blob upload-batch \
+            --account-name cneblobstorage \
+            --destination '$web' \
+            --source ./out \
+            --overwrite \
+            --auth-mode key \
+            --account-key e+sxKF9UeyO8QQ/MEtTKTZIHj+RvHn0hrft9lVC1ekK7WZnTs1Jheqm0SkK75EZldkK7UUE6eKIf+AStcV9cGg==

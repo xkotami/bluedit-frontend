@@ -24,11 +24,11 @@ interface AuthData {
     userId: string | null;
 }
 
-const API_BASE_URL = 'http://localhost:3000'; // Replace with your backend URL
+
 
 export const signupUser = async (signupData: SignupRequest): Promise<SignupResult> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/user/register`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

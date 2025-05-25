@@ -1,8 +1,4 @@
-// services/apiService.ts
 
-const API_BASE_URL = 'http://localhost:3000'; // Replace with your backend URL
-
-// Types (matching your backend)
 interface User {
     id?: number;
     username: string;
@@ -95,7 +91,7 @@ export const getCurrentUserId = (): number | null => {
 const apiCall = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
     const token = getAuthToken();
     
-    return fetch(`${API_BASE_URL}${endpoint}`, {
+    return fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoint}`, {
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -143,7 +139,7 @@ export const userService = {
     // Login user
     login: async (email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch(`${API_BASE_URL}/user/login`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -205,7 +201,7 @@ export const userService = {
     // Register user
     register: async (username: string, email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch(`${API_BASE_URL}/user/register`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password }),
@@ -263,7 +259,7 @@ export const userService = {
     // Get all users
     getAllUsers: async (): Promise<ApiResponse<User[]>> => {
         try {
-            const response = await apiCall('/user');
+            const response = await apiCall('/users');
             
             if (!response.ok) {
                 throw new Error('Failed to fetch users');
@@ -282,7 +278,7 @@ export const userService = {
     // Get user by ID
     getUserById: async (id: number): Promise<ApiResponse<User>> => {
         try {
-            const response = await apiCall(`/user/${id}`);
+            const response = await apiCall(`/users/${id}`);
             
             if (!response.ok) {
                 throw new Error('User not found');
@@ -304,7 +300,7 @@ export const communityService = {
     // Get all communities
     getAllCommunities: async (): Promise<ApiResponse<Community[]>> => {
         try {
-            const response = await apiCall('/community');
+            const response = await apiCall('/communities');
             
             if (!response.ok) {
                 throw new Error('Failed to fetch communities');
@@ -323,7 +319,7 @@ export const communityService = {
     // Get community by ID
     getCommunityById: async (id: number): Promise<ApiResponse<Community>> => {
         try {
-            const response = await apiCall(`/community/${id}`);
+            const response = await apiCall(`/communities/${id}`);
             
             if (!response.ok) {
                 throw new Error('Community not found');
@@ -342,7 +338,7 @@ export const communityService = {
     // Create community
     createCommunity: async (name: string, description: string): Promise<ApiResponse<Community>> => {
         try {
-            const response = await apiCall('/community', {
+            const response = await apiCall('/communities', {
                 method: 'POST',
                 body: JSON.stringify({ name, description }),
             });
@@ -431,7 +427,7 @@ export const postService = {
     // Get all posts
     getAllPosts: async (): Promise<ApiResponse<Post[]>> => {
         try {
-            const response = await apiCall('/post');
+            const response = await apiCall('/posts');
             
             if (!response.ok) {
                 throw new Error('Failed to fetch posts');
@@ -450,7 +446,7 @@ export const postService = {
     // Get post by ID
     getPostById: async (id: string): Promise<ApiResponse<Post>> => {
         try {
-            const response = await apiCall(`/post/${id}`);
+            const response = await apiCall(`/posts/${id}`);
             
             if (!response.ok) {
                 throw new Error('Post not found');
@@ -488,7 +484,7 @@ export const postService = {
     // Create post
     createPost: async (title: string, content: string, communityId: number): Promise<ApiResponse<Post>> => {
         try {
-            const response = await apiCall('/post', {
+            const response = await apiCall('/posts', {
                 method: 'POST',
                 body: JSON.stringify({ title, content, communityId }),
             });
@@ -516,7 +512,7 @@ export const commentService = {
     // Get all comments
     getAllComments: async (): Promise<ApiResponse<Comment[]>> => {
         try {
-            const response = await apiCall('/comment');
+            const response = await apiCall('/comments');
             
             if (!response.ok) {
                 const errorData = await response.json();
@@ -536,7 +532,7 @@ export const commentService = {
     // Get comments by post - FIXED ENDPOINT
     getCommentsByPost: async (postId: number): Promise<ApiResponse<Comment[]>> => {
         try {
-            const response = await apiCall(`/comment/post/${postId}`);
+            const response = await apiCall(`/comments/post/${postId}`);
             
             if (!response.ok) {
                 const errorData = await response.json();
@@ -556,7 +552,7 @@ export const commentService = {
     // Get comment by ID
     getCommentById: async (id: number): Promise<ApiResponse<Comment>> => {
         try {
-            const response = await apiCall(`/comment/${id}`);
+            const response = await apiCall(`/comments/${id}`);
             
             if (!response.ok) {
                 const errorData = await response.json();
@@ -573,12 +569,11 @@ export const commentService = {
         }
     },
 
-    // Create comment - FIXED TO MATCH BACKEND EXPECTATIONS
     createComment: async (commentData: CommentInput): Promise<ApiResponse<Comment>> => {
         try {
             console.log('Creating comment with data:', commentData);
             
-            const response = await apiCall('/comment', {
+            const response = await apiCall('/comments', {
                 method: 'POST',
                 body: JSON.stringify({
                     text: commentData.text,
@@ -611,7 +606,7 @@ export const commentService = {
         try {
             console.log('Creating reply with data:', replyData);
             
-            const response = await apiCall('/comment', {
+            const response = await apiCall('/comments', {
                 method: 'POST',
                 body: JSON.stringify({
                     text: replyData.text,
