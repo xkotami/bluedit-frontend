@@ -1,11 +1,8 @@
-name: Deploy Functions and Frontend
+name: Deploy and Frontend
 on:
   push:
     branches:
-      - blob
-
-      
-
+      - main
 
 env:               
   NODE_VERSION: '18.x'
