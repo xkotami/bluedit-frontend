@@ -5,6 +5,7 @@ import Header from '@components/header';
 import styles from '@styles/home.module.css';
 import { communityService, isAuthenticated, postService } from 'service/apiService';
 import { Community } from '@types';
+import { t } from 'i18next';
 
 
 interface User {
@@ -52,6 +53,7 @@ const Home: React.FC = () => {
 
             if (result.success && result.data && result2.data) {
                 for (const post of result.data) {
+                    // @ts-ignore
                     post.community = result2.data.find(c => c.posts.find(p => p.id === post.id));
                 }
 

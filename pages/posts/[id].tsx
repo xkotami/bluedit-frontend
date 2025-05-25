@@ -310,6 +310,7 @@ const PostDetailPage: React.FC = () => {
             const result2 = await communityService.getAllCommunities();
 
             if (result.success && result.data && result2.data) {
+                // @ts-ignore
                 result.data.community = result2.data.find(c => c.posts.find(p => p.id === result.data.id));
 
                 // Build nested comment structure if not already structured
