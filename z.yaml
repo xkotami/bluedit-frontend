@@ -36,7 +36,7 @@ jobs:
         inlineScript: |
           # Upload all files from out directory to $web container
           az storage blob upload-batch \
-            --account-name cneblobstorage \
+            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
             --destination '$web' \
             --source ./out \
             --overwrite \
