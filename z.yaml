@@ -2,7 +2,7 @@ name: Deploy Functions and Frontend
 on:
   push:
     branches:
-      - blob
+      - main
 
 
 env:               
@@ -41,4 +41,4 @@ jobs:
             --source ./out \
             --overwrite \
             --auth-mode key \
-            --account-key e+sxKF9UeyO8QQ/MEtTKTZIHj+RvHn0hrft9lVC1ekK7WZnTs1Jheqm0SkK75EZldkK7UUE6eKIf+AStcV9cGg==
+            --account-key ${{ secrets.AZURE_STORAGE_KEY }}
