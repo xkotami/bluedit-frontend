@@ -4,11 +4,9 @@ import Head from 'next/head';
 import Header from '@components/header';
 import PostComponent from '@components/post';
 import styles from '@styles/home.module.css';
-import { useEffect, useState } from 'react';
 import postService from '@services/PostService';
 import { Community, Post } from '@types';
 import communityService from '@services/CommunityService';
-import { useRouter } from 'next/router';
 
 const Home: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
