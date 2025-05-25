@@ -27,6 +27,14 @@ const CreatePostPage: React.FC = () => {
         }
     }, [userData]);
 
+    useEffect(() => {
+        if (!userData) {
+            router.push('/login');
+            return;
+        }
+        loadUserCommunities();
+    }, [userData]);
+
     const loadUserCommunities = async () => {
         if (!userData) return;
         try {

@@ -27,8 +27,20 @@ const getAllPostsOfCommunity = async (communityId: number) => {
     });
 };
 
+const createPost = async (input: { title: string, content: string, userId: string, communityId: number }, token: string) => {
+    return fetch(`${BASE_URL}/post`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ input: input })
+    });
+};
+
 export default {
     getAllPosts,
     getPostById,
     getAllPostsOfCommunity,
+    createPost,
 }

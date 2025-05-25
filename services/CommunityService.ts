@@ -27,8 +27,31 @@ const findCommunityByPostId = async (postId: number) => {
     });
 };
 
+const getCommunitiesOfUser = async (token: string) => {
+    return fetch(`${BASE_URL}/community/user`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    });
+};
+
+const createCommunity = async (name: string, description: string, token: string) => {
+    return fetch(`${BASE_URL}/community/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify( { name, description } )
+    });
+};
+
 export default {
     getAllCommunities,
     getCommunityById,
     findCommunityByPostId,
+    getCommunitiesOfUser,
+    createCommunity,
 }

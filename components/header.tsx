@@ -15,7 +15,7 @@ const Header: React.FC = () => {
         <header className={styles.header}>
             <div className={styles.container}>
                 <div className={styles.logo}>
-                    <Link href="/"><img src={"images/logo.png"} alt={"logo"}/></Link>
+                    <Link href="/"><img src={"/images/logo.png"} alt={"logo"}/></Link>
                 </div>
                 <nav className={styles.nav}>
                     <Link href="/" className={`${styles.link} ${isActive('/') ? styles.active : ''}`}>
