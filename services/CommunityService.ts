@@ -48,10 +48,32 @@ const createCommunity = async (name: string, description: string, token: string)
     });
 };
 
+const joinCommunity = async (communityId: number, token: string) => {
+    return fetch(`${BASE_URL}/community/join/${communityId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    });
+};
+
+const leaveCommunity = async (communityId: number, token: string) => {
+    return fetch(`${BASE_URL}/community/leave/${communityId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    });
+};
+
 export default {
     getAllCommunities,
     getCommunityById,
     findCommunityByPostId,
     getCommunitiesOfUser,
     createCommunity,
+    joinCommunity,
+    leaveCommunity,
 }
