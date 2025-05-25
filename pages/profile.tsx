@@ -3,34 +3,11 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '@components/header';
 import styles from '@styles/profile.module.css';
-import { userService, postService, commentService, isAuthenticated } from 'service/apiService';
-
-interface User {
-    id?: number;
-    username: string;
-    email: string;
-    points: number;
-    password: string;
-}
-
-interface Post {
-    id?: number;
-    title: string;
-    content: string;
-    user: User;
-    comments: Comment[];
-    createdAt: Date;
-}
-
-interface Comment {
-    id?: number;
-    text: string;
-    createdAt: Date;
-    points: number;
-    createdBy: User;
-    parent?: Comment;
-    replies: Comment[];
-}
+import { Post, User, Comment } from '@types';
+import userService from '@services/UserService';
+import postService from '@services/PostService';
+import { useUser } from '../hooks/useUser';
+import commentService from '@services/CommentService';
 
 const Profile: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
@@ -40,16 +17,16 @@ const Profile: React.FC = () => {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('posts');
     const router = useRouter();
+    const { userData, isUserLoading, userError } = useUser();
 
     useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push('/login');
-            return;
+        if (userData) {
+            loadUserData();
         }
-        loadUserData();
-    }, []);
+    }, [userData]);
 
     const loadUserData = async () => {
+        if (!userData) return;
         try {
             const userId = localStorage.getItem('userId');
             if (!userId) {
@@ -58,27 +35,30 @@ const Profile: React.FC = () => {
             }
 
             // Load user details
-            const userResult = await userService.getUserById(parseInt(userId));
-            if (userResult.success && userResult.data) {
-                setUser(userResult.data);
+            const response = await userService.findUserById(parseInt(userId), userData.token);
+            const userResponse = await response.json();
+            if (userResponse) {
+                setUser(userResponse);
             } else {
                 setError('Failed to load user profile');
                 return;
             }
 
             // Load all posts and filter for current user
-            const postsResult = await postService.getAllPosts();
-            if (postsResult.success && postsResult.data) {
-                const filteredPosts = postsResult.data.filter(
-                    post => post.user.id === parseInt(userId)
+            const response1 = await postService.getAllPosts();
+            const postResponse = await response1.json();
+            if (postResponse) {
+                const filteredPosts = postResponse.filter(
+                    (post: Post) => post.user.id === parseInt(userId)
                 );
                 setUserPosts(filteredPosts);
             }
 
             // Load user's comments
-            const commentsResult = await commentService.getUserComments(parseInt(userId));
-            if (commentsResult.success && commentsResult.data) {
-                setUserComments(commentsResult.data);
+            const response2 = await commentService.getCommentByUserId(parseInt(userId));
+            const commentsResponse = await response2.json();
+            if (commentsResponse) {
+                setUserComments(commentsResponse);
             }
 
         } catch (err) {
@@ -136,19 +116,21 @@ const Profile: React.FC = () => {
                                         Posted by u/{user?.username} {formatTimeAgo(post.createdAt)}
                                     </span>
                                 </div>
-                                <h3 
+                                <h3
                                     className={styles.postTitle}
                                     onClick={() => router.push(`/posts/${post.id}`)}
                                     style={{ cursor: 'pointer' }}
                                 >
                                     {post.title}
                                 </h3>
-                                <p className={styles.postContent}>
-                                    {post.content.length > 150 
-                                        ? `${post.content.substring(0, 150)}...` 
-                                        : post.content
-                                    }
-                                </p>
+                                {post.content && (
+                                    <p className={styles.postContent}>
+                                        {post.content.length > 150
+                                            ? `${post.content.substring(0, 150)}...`
+                                            : post.content
+                                        }
+                                    </p>
+                                )}
                                 <div className={styles.postStats}>
                                     <span className={styles.upvotes}>▲ {post.comments?.length || 0}</span>
                                     <span className={styles.comments}>
@@ -219,10 +201,10 @@ const Profile: React.FC = () => {
                 </Head>
                 <Header />
                 <main className={styles.profileContainer}>
-                    <div style={{ 
-                        textAlign: 'center', 
-                        padding: '60px', 
-                        fontSize: '18px', 
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '60px',
+                        fontSize: '18px',
                         color: '#d32f2f',
                         backgroundColor: '#ffebee',
                         borderRadius: '8px',
@@ -282,31 +264,31 @@ const Profile: React.FC = () => {
                 </div>
 
                 <div className={styles.tabs}>
-                    <button 
+                    <button
                         className={`${styles.tab} ${activeTab === 'posts' ? styles.active : ''}`}
                         onClick={() => handleTabClick('posts')}
                     >
                         Posts ({userPosts.length})
                     </button>
-                    <button 
+                    <button
                         className={`${styles.tab} ${activeTab === 'comments' ? styles.active : ''}`}
                         onClick={() => handleTabClick('comments')}
                     >
                         Comments ({userComments.length})
                     </button>
-                    <button 
+                    <button
                         className={`${styles.tab} ${activeTab === 'saved' ? styles.active : ''}`}
                         onClick={() => handleTabClick('saved')}
                     >
                         Saved
                     </button>
-                    <button 
+                    <button
                         className={`${styles.tab} ${activeTab === 'upvoted' ? styles.active : ''}`}
                         onClick={() => handleTabClick('upvoted')}
                     >
                         Upvoted
                     </button>
-                    <button 
+                    <button
                         className={`${styles.tab} ${activeTab === 'downvoted' ? styles.active : ''}`}
                         onClick={() => handleTabClick('downvoted')}
                     >
