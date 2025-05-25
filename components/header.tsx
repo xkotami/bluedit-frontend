@@ -43,7 +43,7 @@ const Header: React.FC = () => {
                 </div>
                 <nav className={styles.nav}>
                     <Link href="/" className={`${styles.link} ${isActive('/') ? styles.active : ''}`}>
-                        Home
+                        home
                     </Link>
                     <Link href="/community" className={`${styles.link} ${isActive('/community') ? styles.active : ''}`}>
                         Community
