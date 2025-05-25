@@ -28,7 +28,7 @@ interface AuthData {
 
 export const signupUser = async (signupData: SignupRequest): Promise<SignupResult> => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/register`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

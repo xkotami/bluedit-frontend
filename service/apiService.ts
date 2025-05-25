@@ -104,21 +104,20 @@ const apiCall = async (endpoint: string, options: RequestInit = {}): Promise<Res
 // AUTH SERVICES
 export const authService = {
     // Get current user info
-    getCurrentUser: async (): Promise<User> => {
+    getCurrentUser: async (userId: string): Promise<User> => {
         try {
-            const response = await apiCall('/user/profile'); // Adjust endpoint as needed
-            
+            const response = await apiCall(`/users/${userId}`);
+
             if (!response.ok) {
                 throw new Error('Failed to get current user');
             }
 
-            const data = await response.json();
-            return data;
+            return await response.json();
         } catch (error) {
             // Fallback: construct user from stored data
             const userId = localStorage.getItem('userId');
             const userEmail = localStorage.getItem('userEmail');
-            
+
             if (!userId || !userEmail) {
                 throw new Error('No user data available');
             }
@@ -139,7 +138,7 @@ export const userService = {
     // Login user
     login: async (email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/login`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -201,7 +200,7 @@ export const userService = {
     // Register user
     register: async (username: string, email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/register`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password }),
@@ -361,7 +360,7 @@ export const communityService = {
     // Get user's joined communities
     getUserCommunities: async (): Promise<ApiResponse<Community[]>> => {
         try {
-            const response = await apiCall('/community/user');
+            const response = await apiCall('/communities/user');
             
             if (!response.ok) {
                 throw new Error('Failed to fetch user communities');
@@ -465,7 +464,7 @@ export const postService = {
     // Get posts by community
     getPostsByCommunity: async (communityId: string): Promise<ApiResponse<Post[]>> => {
         try {
-            const response = await apiCall(`/post/community/${communityId}`);
+            const response = await apiCall(`/posts/community/${communityId}`);
             
             if (!response.ok) {
                 throw new Error('Failed to fetch community posts');
@@ -578,8 +577,7 @@ export const commentService = {
                 body: JSON.stringify({
                     text: commentData.text,
                     postId: commentData.postId,
-                    userId: commentData.userId,
-                    ...(commentData.parentId && { parentId: commentData.parentId })
+                    userId: commentData.userId
                 }),
             });
 

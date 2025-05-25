@@ -54,8 +54,10 @@ const PostDetailPage: React.FC = () => {
     const loadCurrentUser = async () => {
         try {
             if (isAuthenticated()) {
-                // Assuming you have a method to get current user
-                const user = await authService.getCurrentUser();
+                const userId = localStorage.getItem('userId');
+                if (!userId) throw new Error("User not logged in");
+
+                const user = await authService.getCurrentUser(userId);
                 setCurrentUser(user);
             }
         } catch (err) {
@@ -84,7 +86,7 @@ const PostDetailPage: React.FC = () => {
         if (!commentText.trim() || !post?.id) return;
 
         if (!isAuthenticated() || !currentUser?.id) {
-            router.push('/login');
+            await router.push('/login');
             return;
         }
 

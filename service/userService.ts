@@ -22,7 +22,7 @@ interface AuthData {
 
 export const loginUser = async (email: string, password: string): Promise<LoginResult> => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/login`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

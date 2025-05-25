@@ -66,7 +66,7 @@ const CreatePostPage: React.FC = () => {
             
             if (result.success && result.data) {
                 // Redirect to the created post
-                router.push(`/posts/${result.data.id}`);
+                await router.push(`/posts/${result.data.id}`);
             } else {
                 setError(result.error || 'Failed to create post');
             }

@@ -81,10 +81,22 @@ const CommunityDetailPage: React.FC = () => {
         try {
             const result = await postService.getPostsByCommunity(id as string);
             if (result.success && result.data) {
-                // Sort posts by newest first
-                const sortedPosts = result.data.sort((a, b) => 
-                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                // Filter out posts with invalid createdAt dates and sort by newest first
+                const validPosts = result.data.filter(post =>
+                    post && post.createdAt
                 );
+
+                const sortedPosts = validPosts.sort((a, b) => {
+                    const dateA = new Date(a.createdAt);
+                    const dateB = new Date(b.createdAt);
+
+                    // Handle invalid dates
+                    if (isNaN(dateA.getTime())) return 1;
+                    if (isNaN(dateB.getTime())) return -1;
+
+                    return dateB.getTime() - dateA.getTime();
+                });
+
                 setPosts(sortedPosts);
             } else {
                 setPosts([]);
@@ -110,7 +122,7 @@ const CommunityDetailPage: React.FC = () => {
 
     const handleJoinCommunity = async () => {
         if (!isAuthenticated()) {
-            router.push('/login');
+            await router.push('/login');
             return;
         }
 
@@ -154,8 +166,19 @@ const CommunityDetailPage: React.FC = () => {
     };
 
     const formatTimeAgo = (date: Date | string): string => {
+        // Handle null/undefined dates
+        if (!date) {
+            return 'Unknown time';
+        }
+
         const now = new Date();
         const postDate = new Date(date);
+
+        // Handle invalid dates
+        if (isNaN(postDate.getTime())) {
+            return 'Invalid date';
+        }
+
         const diffInMs = now.getTime() - postDate.getTime();
         const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
         const diffInDays = Math.floor(diffInHours / 24);
@@ -176,8 +199,8 @@ const CommunityDetailPage: React.FC = () => {
         return content.substring(0, maxLength) + '...';
     };
 
-    const handlePostClick = (postId: number) => {
-        router.push(`/posts/${postId}`);
+    const handlePostClick = async (postId: number) => {
+        await router.push(`/posts/${postId}`);
     };
 
     const containerStyle: React.CSSProperties = {
@@ -307,7 +330,8 @@ const CommunityDetailPage: React.FC = () => {
         alignItems: 'center',
         marginBottom: '12px',
         fontSize: '14px',
-        color: '#666'
+        color: '#666',
+        marginRight: '4px'
     };
 
     const authorStyle: React.CSSProperties = {
