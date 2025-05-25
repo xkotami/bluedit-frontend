@@ -27,7 +27,7 @@ jobs:
     - name: Build Next.js Static Site
       run: npm run build
       env:
-        NEXT_PUBLIC_API_BASE_URL: https://cne-functions.azurewebsites.net/api
+        NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
     
     - name: Upload to Azure Blob Storage
       uses: azure/CLI@v1
