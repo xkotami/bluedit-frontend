@@ -24,11 +24,10 @@ interface AuthData {
     userId: string | null;
 }
 
-
-
 export const signupUser = async (signupData: SignupRequest): Promise<SignupResult> => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/register`, {
+        // Updated to use the correct Azure Functions endpoint
+        const response = await fetch('https://cne-functions.azurewebsites.net/api/user/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -43,9 +42,10 @@ export const signupUser = async (signupData: SignupRequest): Promise<SignupResul
         }
 
         const data: SignupResponse = await response.json();
-        
+
         // Store token in localStorage (optional - auto-login after signup)
-        if (data.token) {
+        // Note: In production, consider using proper state management instead of localStorage
+        if (data.token && typeof window !== 'undefined') {
             localStorage.setItem('authToken', data.token);
             localStorage.setItem('userEmail', data.email);
             localStorage.setItem('userId', data.id);
@@ -62,10 +62,10 @@ export const signupUser = async (signupData: SignupRequest): Promise<SignupResul
 
     } catch (error) {
         console.error('Signup error:', error);
-        
+
         // Handle specific backend errors
         let errorMessage = 'An error occurred during signup';
-        
+
         if (error instanceof Error) {
             if (error.message.includes('ERROR_USER_EXISTS')) {
                 errorMessage = 'User with this email or username already exists';
@@ -140,34 +140,46 @@ export const getPasswordStrengthMessage = (password: string): string => {
 
 // Function to get stored auth data
 export const getAuthData = (): AuthData => {
+    if (typeof window !== 'undefined') {
+        return {
+            token: localStorage.getItem('authToken'),
+            email: localStorage.getItem('userEmail'),
+            userId: localStorage.getItem('userId')
+        };
+    }
     return {
-        token: localStorage.getItem('authToken'),
-        email: localStorage.getItem('userEmail'),
-        userId: localStorage.getItem('userId')
+        token: null,
+        email: null,
+        userId: null
     };
 };
 
 // Function to clear auth data (for logout)
 export const clearAuthData = (): void => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userId');
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userId');
+    }
 };
 
 // Function to check if user is authenticated
 export const isAuthenticated = (): boolean => {
-    return !!localStorage.getItem('authToken');
+    if (typeof window !== 'undefined') {
+        return !!localStorage.getItem('authToken');
+    }
+    return false;
 };
 
 // For authenticated requests
 export const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
-    const token = localStorage.getItem('authToken');
-    
+    const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+
     return fetch(url, {
         ...options,
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            ...(token && { 'Authorization': `Bearer ${token}` }),
             ...options.headers
         }
     });

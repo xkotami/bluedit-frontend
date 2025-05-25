@@ -1,4 +1,4 @@
-// loginService.ts
+// userService.ts
 
 interface LoginResponse {
     token: string;
@@ -18,11 +18,9 @@ interface AuthData {
     userId: string | null;
 }
 
-// Replace with your backend URL
-
 export const loginUser = async (email: string, password: string): Promise<LoginResult> => {
     try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/users/login`, {
+        const response = await fetch(`https://cne-functions.azurewebsites.net/api/user/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -37,7 +35,7 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
         if (!response.ok) {
             const errorData = await response.json();
             console.log('Backend error:', errorData); // Debug log
-            
+
             // Handle both route-level and service-level errors
             if (response.status === 500) {
                 // Backend throws 500 for all errors, check the message
@@ -58,7 +56,7 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
         }
 
         const data: LoginResponse = await response.json();
-        
+
         // Store token in localStorage (optional)
         if (data.token) {
             localStorage.setItem('authToken', data.token);
@@ -77,10 +75,10 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
 
     } catch (error) {
         console.error('Login error:', error);
-        
+
         // Handle specific backend errors
         let errorMessage = 'An error occurred during login';
-        
+
         if (error instanceof Error) {
             if (error.message.includes('ERROR_USER_NOT_FOUND')) {
                 errorMessage = 'User not found';
@@ -126,7 +124,7 @@ export const isAuthenticated = (): boolean => {
 // For authenticated requests
 export const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
     const token = localStorage.getItem('authToken');
-    
+
     return fetch(url, {
         ...options,
         headers: {
@@ -136,3 +134,21 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
         }
     });
 };
+
+// Additional API functions based on the provided endpoints
+export const createUser = async (userData: any): Promise<any> => {
+    return authenticatedFetch('https://cne-functions.azurewebsites.net/api/user/register', {
+        method: 'POST',
+        body: JSON.stringify(userData)
+    });
+};
+
+export const getUserById = async (id: string): Promise<any> => {
+    return authenticatedFetch(`https://cne-functions.azurewebsites.net/api/users/${id}`);
+};
+
+export const getUsers = async (): Promise<any> => {
+    return authenticatedFetch('https://cne-functions.azurewebsites.net/api/users');
+};
+
+// Note: You can add more functions for other endpoints as needed

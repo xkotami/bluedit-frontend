@@ -19,7 +19,7 @@ const Login: React.FC = () => {
             const result = await loginUser(email, password);
 
             if (result.success) {
-                router.push('/profile');
+                await router.push('/profile');
             } else {
                 setError('Invalid username or password');
             }
