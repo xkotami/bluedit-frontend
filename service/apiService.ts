@@ -379,7 +379,7 @@ export const communityService = {
     // Join community
     joinCommunity: async (communityId: number): Promise<ApiResponse<Community>> => {
         try {
-            const response = await apiCall(`/community/join/${communityId}`, {
+            const response = await apiCall(`/communities/join/${communityId}`, {
                 method: 'PUT',
             });
 
@@ -401,7 +401,7 @@ export const communityService = {
     // Leave community
     leaveCommunity: async (communityId: number): Promise<ApiResponse<Community>> => {
         try {
-            const response = await apiCall(`/community/leave/${communityId}`, {
+            const response = await apiCall(`/communities/leave/${communityId}`, {
                 method: 'PUT',
             });
 
@@ -604,7 +604,7 @@ export const commentService = {
         try {
             console.log('Creating reply with data:', replyData);
             
-            const response = await apiCall('/comments', {
+            const response = await apiCall('/comments/reply', {
                 method: 'POST',
                 body: JSON.stringify({
                     text: replyData.text,
@@ -670,7 +670,8 @@ export const commentService = {
     // Get user's comments (if you have this endpoint)
     getUserComments: async (userId: number): Promise<ApiResponse<Comment[]>> => {
         try {
-            const response = await apiCall(`/user/${userId}/comments`);
+            const response = await apiCall(`/comments/user/${userId}`);
+            console.log(response)
             
             if (!response.ok) {
                 const errorData = await response.json();

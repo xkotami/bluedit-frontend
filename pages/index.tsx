@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '@components/header';
 import styles from '@styles/home.module.css';
-import { isAuthenticated, postService } from 'service/apiService';
+import { communityService, isAuthenticated, postService } from 'service/apiService';
+import { Community } from '@types';
 
 
 interface User {
@@ -31,6 +32,7 @@ interface Post {
     user: User;
     comments: Comment[];
     createdAt: Date;
+    community?: Community;
 }
 
 const Home: React.FC = () => {
@@ -46,12 +48,19 @@ const Home: React.FC = () => {
     const loadPosts = async () => {
         try {
             const result = await postService.getAllPosts();
-            if (result.success && result.data) {
+            const result2 = await communityService.getAllCommunities();
+
+            if (result.success && result.data && result2.data) {
+                for (const post of result.data) {
+                    post.community = result2.data.find(c => c.posts.find(p => p.id === post.id));
+                }
+
                 // Sort posts by creation time (newest first)
                 const sortedPosts = result.data.sort((a, b) => 
                     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 );
                 setPosts(sortedPosts);
+                console.log(sortedPosts);
             } else {
                 setError('Failed to load posts');
             }
@@ -254,7 +263,7 @@ const Home: React.FC = () => {
                                         onMouseLeave={(e) => Object.assign(e.currentTarget.style, postCardStyle)}
                                     >
                                         <div style={postHeaderStyle}>
-                                            <span style={communityStyle}>r/community</span>
+                                            <span style={communityStyle}>r/{post.community ? post.community.name : "community"}</span>
                                             <span style={dotStyle}>•</span>
                                             <span>Posted by </span>
                                             <span style={authorStyle}>u/{post.user.username}</span>

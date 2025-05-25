@@ -330,8 +330,7 @@ const CommunityDetailPage: React.FC = () => {
         alignItems: 'center',
         marginBottom: '12px',
         fontSize: '14px',
-        color: '#666',
-        marginRight: '4px'
+        color: '#666'
     };
 
     const authorStyle: React.CSSProperties = {

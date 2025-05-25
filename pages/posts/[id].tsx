@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Header from '@components/header';
-import { commentService, isAuthenticated, postService, authService } from 'service/apiService';
+import { commentService, isAuthenticated, postService, authService, communityService } from 'service/apiService';
+import { Community } from '@types';
+import community from '../community';
 
 interface User {
     id?: number;
@@ -29,7 +31,244 @@ interface Post {
     user: User;
     comments: Comment[];
     createdAt: Date;
+    community?: Community;
 }
+
+// Move CommentComponent outside of the main component to prevent re-creation
+const CommentComponent: React.FC<{
+    comment: Comment;
+    depth: number;
+    post: Post;
+    replyTexts: {[key: number]: string};
+    showReplyForms: {[key: number]: boolean};
+    isAuthenticated: boolean;
+    replyingTo: number | null;
+    onToggleReplyForm: (commentId: number) => void;
+    onReplyTextChange: (commentId: number, text: string) => void;
+    onCreateReply: (parentCommentId: number, postId: number) => void;
+    formatTimeAgo: (date: Date | string) => string;
+}> = ({
+          comment,
+          depth,
+          post,
+          replyTexts,
+          showReplyForms,
+          isAuthenticated,
+          replyingTo,
+          onToggleReplyForm,
+          onReplyTextChange,
+          onCreateReply,
+          formatTimeAgo
+      }) => {
+    const indentStyle: React.CSSProperties = {
+        marginLeft: `${Math.min(depth * 20, 100)}px`,
+        borderLeft: depth > 0 ? '2px solid #e1e1e1' : 'none',
+        paddingLeft: depth > 0 ? '16px' : '0',
+        marginBottom: '16px'
+    };
+
+    const commentCardStyle: React.CSSProperties = {
+        backgroundColor: '#f8f9fa',
+        border: '1px solid #e9ecef',
+        borderRadius: '6px',
+        padding: '16px',
+        marginBottom: '12px'
+    };
+
+    const commentHeaderStyle: React.CSSProperties = {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '12px'
+    };
+
+    const commentAuthorStyle: React.CSSProperties = {
+        display: 'flex',
+        alignItems: 'center'
+    };
+
+    const commentMetaStyle: React.CSSProperties = {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '12px'
+    };
+
+    const commentPointsStyle: React.CSSProperties = {
+        color: '#28a745',
+        fontWeight: '600'
+    };
+
+    const authorStyle: React.CSSProperties = {
+        color: '#333',
+        fontWeight: '600'
+    };
+
+    const pointsStyle: React.CSSProperties = {
+        color: '#28a745',
+        fontSize: '12px',
+        marginLeft: '4px'
+    };
+
+    const dotStyle: React.CSSProperties = {
+        color: '#ccc'
+    };
+
+    const dateStyle: React.CSSProperties = {
+        color: '#888'
+    };
+
+    const commentTextStyle: React.CSSProperties = {
+        fontSize: '14px',
+        lineHeight: '1.5',
+        marginBottom: '12px',
+        color: '#333',
+        whiteSpace: 'pre-wrap'
+    };
+
+    const commentActionsStyle: React.CSSProperties = {
+        display: 'flex',
+        gap: '12px'
+    };
+
+    const actionButtonStyle: React.CSSProperties = {
+        background: 'none',
+        border: 'none',
+        color: '#007bff',
+        fontSize: '12px',
+        cursor: 'pointer',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        transition: 'background-color 0.2s ease'
+    };
+
+    const replyFormStyle: React.CSSProperties = {
+        marginTop: '16px',
+        padding: '16px',
+        backgroundColor: 'white',
+        border: '1px solid #ddd',
+        borderRadius: '6px'
+    };
+
+    const replyTextareaStyle: React.CSSProperties = {
+        width: '100%',
+        padding: '10px 12px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        fontSize: '13px',
+        fontFamily: 'inherit',
+        resize: 'vertical',
+        boxSizing: 'border-box',
+        outline: 'none'
+    };
+
+    const replyFormActionsStyle: React.CSSProperties = {
+        display: 'flex',
+        gap: '8px',
+        marginTop: '12px'
+    };
+
+    const submitReplyButtonStyle: React.CSSProperties = {
+        backgroundColor: '#28a745',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        padding: '6px 12px',
+        fontSize: '12px',
+        cursor: 'pointer',
+        opacity: replyingTo === comment.id ? 0.6 : 1,
+        pointerEvents: replyingTo === comment.id ? 'none' : 'auto'
+    };
+
+    const cancelButtonStyle: React.CSSProperties = {
+        backgroundColor: '#6c757d',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        padding: '6px 12px',
+        fontSize: '12px',
+        cursor: 'pointer'
+    };
+
+    return (
+        <div style={indentStyle}>
+            <div style={commentCardStyle}>
+                <div style={commentHeaderStyle}>
+                    <div style={commentAuthorStyle}>
+                        <span style={authorStyle}>u/{comment.createdBy.username}</span>
+                        <span style={pointsStyle}>({comment.createdBy.points} pts)</span>
+                    </div>
+                    <div style={commentMetaStyle}>
+                        <span style={commentPointsStyle}>▲ {comment.points}</span>
+                        <span style={dotStyle}>•</span>
+                        <span style={dateStyle}>{formatTimeAgo(comment.createdAt)}</span>
+                    </div>
+                </div>
+
+                <div style={commentTextStyle}>
+                    {comment.text}
+                </div>
+
+                <div style={commentActionsStyle}>
+                    {isAuthenticated && (
+                        <button
+                            style={actionButtonStyle}
+                            onClick={() => onToggleReplyForm(comment.id!)}
+                        >
+                            Reply
+                        </button>
+                    )}
+                </div>
+
+                {/* Reply Form */}
+                {showReplyForms[comment.id!] && (
+                    <div style={replyFormStyle}>
+                        <textarea
+                            value={replyTexts[comment.id!] || ''}
+                            onChange={(e) => onReplyTextChange(comment.id!, e.target.value)}
+                            placeholder="Write a reply..."
+                            style={replyTextareaStyle}
+                            rows={3}
+                        />
+                        <div style={replyFormActionsStyle}>
+                            <button
+                                onClick={() => onCreateReply(comment.id!, post.id!)}
+                                disabled={replyingTo === comment.id || !replyTexts[comment.id!]?.trim()}
+                                style={submitReplyButtonStyle}
+                            >
+                                {replyingTo === comment.id ? 'Replying...' : 'Reply'}
+                            </button>
+                            <button
+                                onClick={() => onToggleReplyForm(comment.id!)}
+                                style={cancelButtonStyle}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {            /* Render Replies */}
+            {comment.replies && comment.replies.length > 0 && comment.replies.map(reply => (
+                <CommentComponent
+                    key={reply.id}
+                    comment={reply}
+                    depth={depth + 1}
+                    post={post}
+                    replyTexts={replyTexts}
+                    showReplyForms={showReplyForms}
+                    isAuthenticated={isAuthenticated}
+                    replyingTo={replyingTo}
+                    onToggleReplyForm={onToggleReplyForm}
+                    onReplyTextChange={onReplyTextChange}
+                    onCreateReply={onCreateReply}
+                    formatTimeAgo={formatTimeAgo}
+                />
+            ))}
+        </div>
+    );
+};
 
 const PostDetailPage: React.FC = () => {
     const [post, setPost] = useState<Post | null>(null);
@@ -68,8 +307,17 @@ const PostDetailPage: React.FC = () => {
     const loadPost = async () => {
         try {
             const result = await postService.getPostById(id as string);
-            if (result.success && result.data) {
-                setPost(result.data);
+            const result2 = await communityService.getAllCommunities();
+
+            if (result.success && result.data && result2.data) {
+                result.data.community = result2.data.find(c => c.posts.find(p => p.id === result.data.id));
+
+                // Build nested comment structure if not already structured
+                const structuredPost = {
+                    ...result.data,
+                    comments: buildCommentTree(result.data.comments || [])
+                };
+                setPost(structuredPost);
             } else {
                 setError('Post not found');
             }
@@ -79,6 +327,41 @@ const PostDetailPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Helper function to build nested comment structure
+    const buildCommentTree = (comments: Comment[]): Comment[] => {
+        const commentMap = new Map<number, Comment>();
+        const rootComments: Comment[] = [];
+
+        // First pass: create a map of all comments and initialize replies array
+        comments.forEach(comment => {
+            commentMap.set(comment.id!, {
+                ...comment,
+                replies: []
+            });
+        });
+
+        // Second pass: build the tree structure
+        comments.forEach(comment => {
+            const commentWithReplies = commentMap.get(comment.id!)!;
+
+            if (comment.parent?.id) {
+                // This is a reply, add it to parent's replies
+                const parentComment = commentMap.get(comment.parent.id);
+                if (parentComment) {
+                    parentComment.replies.push(commentWithReplies);
+                } else {
+                    // Parent not found, treat as root comment
+                    rootComments.push(commentWithReplies);
+                }
+            } else {
+                // This is a root comment
+                rootComments.push(commentWithReplies);
+            }
+        });
+
+        return rootComments;
     };
 
     const handleCreateComment = async (e: React.FormEvent) => {
@@ -92,7 +375,7 @@ const PostDetailPage: React.FC = () => {
 
         setSubmitting(true);
         setError(''); // Clear previous errors
-        
+
         try {
             // Create comment payload matching your backend API
             const commentData = {
@@ -102,9 +385,9 @@ const PostDetailPage: React.FC = () => {
             };
 
             console.log('Creating comment with data:', commentData);
-            
+
             const result = await commentService.createComment(commentData);
-            
+
             if (result.success) {
                 setCommentText('');
                 await loadPost(); // Refresh post to get new comment
@@ -123,18 +406,18 @@ const PostDetailPage: React.FC = () => {
         }
     };
 
-    const handleCreateReply = async (parentCommentId: number, postId: number) => {
+    const handleCreateReply = useCallback(async (parentCommentId: number, postId: number) => {
         const replyText = replyTexts[parentCommentId];
         if (!replyText?.trim()) return;
 
         if (!isAuthenticated() || !currentUser?.id) {
-            router.push('/login');
+            await router.push('/login');
             return;
         }
 
         setReplyingTo(parentCommentId);
         setError(''); // Clear previous errors
-        
+
         try {
             // Create reply payload matching your backend API
             const replyData = {
@@ -145,9 +428,9 @@ const PostDetailPage: React.FC = () => {
             };
 
             console.log('Creating reply with data:', replyData);
-            
+
             const result = await commentService.createReply(replyData);
-            
+
             if (result.success) {
                 setReplyTexts(prev => ({...prev, [parentCommentId]: ''}));
                 setShowReplyForms(prev => ({...prev, [parentCommentId]: false}));
@@ -165,20 +448,25 @@ const PostDetailPage: React.FC = () => {
         } finally {
             setReplyingTo(null);
         }
-    };
+    }, [replyTexts, currentUser, router]);
 
-    const toggleReplyForm = (commentId: number) => {
+    const toggleReplyForm = useCallback((commentId: number) => {
         setShowReplyForms(prev => ({
             ...prev,
             [commentId]: !prev[commentId]
         }));
         // Clear any existing error when opening reply form
-        if (!showReplyForms[commentId]) {
-            setError('');
-        }
-    };
+        setError('');
+    }, []);
 
-    const formatTimeAgo = (date: Date | string): string => {
+    const handleReplyTextChange = useCallback((commentId: number, text: string) => {
+        setReplyTexts(prev => ({
+            ...prev,
+            [commentId]: text
+        }));
+    }, []);
+
+    const formatTimeAgo = useCallback((date: Date | string): string => {
         const now = new Date();
         const postDate = new Date(date);
         const diffInMs = now.getTime() - postDate.getTime();
@@ -194,90 +482,7 @@ const PostDetailPage: React.FC = () => {
         } else {
             return postDate.toLocaleDateString();
         }
-    };
-
-    // Recursive component to render threaded comments
-    const CommentComponent: React.FC<{comment: Comment, depth: number}> = ({ comment, depth }) => {
-        const indentStyle: React.CSSProperties = {
-            marginLeft: `${Math.min(depth * 20, 100)}px`,
-            borderLeft: depth > 0 ? '2px solid #e1e1e1' : 'none',
-            paddingLeft: depth > 0 ? '16px' : '0',
-            marginBottom: '16px'
-        };
-
-        return (
-            <div style={indentStyle}>
-                <div style={commentCardStyle}>
-                    <div style={commentHeaderStyle}>
-                        <div style={commentAuthorStyle}>
-                            <span style={authorStyle}>u/{comment.createdBy.username}</span>
-                            <span style={pointsStyle}>({comment.createdBy.points} pts)</span>
-                        </div>
-                        <div style={commentMetaStyle}>
-                            <span style={commentPointsStyle}>▲ {comment.points}</span>
-                            <span style={dotStyle}>•</span>
-                            <span style={dateStyle}>{formatTimeAgo(comment.createdAt)}</span>
-                        </div>
-                    </div>
-                    
-                    <div style={commentTextStyle}>
-                        {comment.text}
-                    </div>
-                    
-                    <div style={commentActionsStyle}>
-                        {isAuthenticated() && (
-                            <button
-                                style={actionButtonStyle}
-                                onClick={() => toggleReplyForm(comment.id!)}
-                            >
-                                Reply
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Reply Form */}
-                    {showReplyForms[comment.id!] && (
-                        <div style={replyFormStyle}>
-                            <textarea
-                                value={replyTexts[comment.id!] || ''}
-                                onChange={(e) => setReplyTexts(prev => ({
-                                    ...prev,
-                                    [comment.id!]: e.target.value
-                                }))}
-                                placeholder="Write a reply..."
-                                style={replyTextareaStyle}
-                                rows={3}
-                            />
-                            <div style={replyFormActionsStyle}>
-                                <button
-                                    onClick={() => handleCreateReply(comment.id!, post!.id!)}
-                                    disabled={replyingTo === comment.id || !replyTexts[comment.id!]?.trim()}
-                                    style={submitReplyButtonStyle}
-                                >
-                                    {replyingTo === comment.id ? 'Replying...' : 'Reply'}
-                                </button>
-                                <button
-                                    onClick={() => toggleReplyForm(comment.id!)}
-                                    style={cancelButtonStyle}
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Render Replies */}
-                {comment.replies && comment.replies.map(reply => (
-                    <CommentComponent
-                        key={reply.id}
-                        comment={reply}
-                        depth={depth + 1}
-                    />
-                ))}
-            </div>
-        );
-    };
+    }, []);
 
     const containerStyle: React.CSSProperties = {
         maxWidth: '800px',
@@ -328,7 +533,8 @@ const PostDetailPage: React.FC = () => {
     const communityStyle: React.CSSProperties = {
         color: '#007bff',
         fontWeight: '600',
-        textDecoration: 'none'
+        textDecoration: 'none',
+        cursor: 'pointer'
     };
 
     const authorStyle: React.CSSProperties = {
@@ -427,110 +633,6 @@ const PostDetailPage: React.FC = () => {
         pointerEvents: submitting ? 'none' : 'auto'
     };
 
-    const commentCardStyle: React.CSSProperties = {
-        backgroundColor: '#f8f9fa',
-        border: '1px solid #e9ecef',
-        borderRadius: '6px',
-        padding: '16px',
-        marginBottom: '12px'
-    };
-
-    const commentHeaderStyle: React.CSSProperties = {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '12px'
-    };
-
-    const commentAuthorStyle: React.CSSProperties = {
-        display: 'flex',
-        alignItems: 'center'
-    };
-
-    const commentMetaStyle: React.CSSProperties = {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontSize: '12px'
-    };
-
-    const commentPointsStyle: React.CSSProperties = {
-        color: '#28a745',
-        fontWeight: '600'
-    };
-
-    const commentTextStyle: React.CSSProperties = {
-        fontSize: '14px',
-        lineHeight: '1.5',
-        marginBottom: '12px',
-        color: '#333',
-        whiteSpace: 'pre-wrap'
-    };
-
-    const commentActionsStyle: React.CSSProperties = {
-        display: 'flex',
-        gap: '12px'
-    };
-
-    const actionButtonStyle: React.CSSProperties = {
-        background: 'none',
-        border: 'none',
-        color: '#007bff',
-        fontSize: '12px',
-        cursor: 'pointer',
-        padding: '4px 8px',
-        borderRadius: '4px',
-        transition: 'background-color 0.2s ease'
-    };
-
-    const replyFormStyle: React.CSSProperties = {
-        marginTop: '16px',
-        padding: '16px',
-        backgroundColor: 'white',
-        border: '1px solid #ddd',
-        borderRadius: '6px'
-    };
-
-    const replyTextareaStyle: React.CSSProperties = {
-        width: '100%',
-        padding: '10px 12px',
-        border: '1px solid #ddd',
-        borderRadius: '4px',
-        fontSize: '13px',
-        fontFamily: 'inherit',
-        resize: 'vertical',
-        boxSizing: 'border-box',
-        outline: 'none'
-    };
-
-    const replyFormActionsStyle: React.CSSProperties = {
-        display: 'flex',
-        gap: '8px',
-        marginTop: '12px'
-    };
-
-    const submitReplyButtonStyle: React.CSSProperties = {
-        backgroundColor: '#28a745',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        padding: '6px 12px',
-        fontSize: '12px',
-        cursor: 'pointer',
-        opacity: replyingTo ? 0.6 : 1,
-        pointerEvents: replyingTo ? 'none' : 'auto'
-    };
-
-    const cancelButtonStyle: React.CSSProperties = {
-        backgroundColor: '#6c757d',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        padding: '6px 12px',
-        fontSize: '12px',
-        cursor: 'pointer'
-    };
-
     const errorStyle: React.CSSProperties = {
         backgroundColor: '#f8d7da',
         color: '#721c24',
@@ -585,7 +687,9 @@ const PostDetailPage: React.FC = () => {
         );
     }
 
-    const topLevelComments = post.comments?.filter(comment => !comment.parent) || [];
+    // Since we've already structured the comments in buildCommentTree,
+    // post.comments should only contain top-level comments
+    const topLevelComments = post.comments || [];
 
     return (
         <>
@@ -609,9 +713,9 @@ const PostDetailPage: React.FC = () => {
                 {/* Post Content */}
                 <div style={postCardStyle}>
                     <h1 style={postTitleStyle}>{post.title}</h1>
-                    
+
                     <div style={postMetaStyle}>
-                        <span style={communityStyle}>r/community</span>
+                        <span style={communityStyle} onClick={() => router.push(`/communities/${post?.community?.id}`)}>r/{post.community ? post.community.name : "community"}</span>
                         <span style={dotStyle}>•</span>
                         <span>Posted by </span>
                         <span style={authorStyle}>u/{post.user.username}</span>
@@ -619,9 +723,9 @@ const PostDetailPage: React.FC = () => {
                         <span style={dotStyle}>•</span>
                         <span style={dateStyle}>{formatTimeAgo(post.createdAt)}</span>
                     </div>
-                    
+
                     <div style={postContentStyle}>{post.content}</div>
-                    
+
                     <div style={postStatsStyle}>
                         <div style={statStyle}>
                             <span>▲</span>
@@ -678,6 +782,15 @@ const PostDetailPage: React.FC = () => {
                                     key={comment.id}
                                     comment={comment}
                                     depth={0}
+                                    post={post}
+                                    replyTexts={replyTexts}
+                                    showReplyForms={showReplyForms}
+                                    isAuthenticated={isAuthenticated()}
+                                    replyingTo={replyingTo}
+                                    onToggleReplyForm={toggleReplyForm}
+                                    onReplyTextChange={handleReplyTextChange}
+                                    onCreateReply={handleCreateReply}
+                                    formatTimeAgo={formatTimeAgo}
                                 />
                             ))}
                         </div>
