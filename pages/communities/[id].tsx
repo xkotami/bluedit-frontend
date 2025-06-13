@@ -87,6 +87,7 @@ const CommunityDetailPage: React.FC = () => {
             setError('Failed to load community');
         } finally {
             setLoading(false);
+            setPostsLoading(false);
         }
     };
 
