@@ -702,7 +702,7 @@ export const commentService = {
     getUserComments: async (userId: number): Promise<ApiResponse<Comment[]>> => {
         try {
             // The /comments endpoint appears to return comments by user based on the name "GetAllCommentsByUser"
-            const response = await apiCall(`/comments`);
+            const response = await apiCall(`/comments/user/${userId}`);
 
             if (!response.ok) {
                 const errorData = await response.json();

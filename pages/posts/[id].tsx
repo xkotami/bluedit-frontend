@@ -21,6 +21,7 @@ interface Comment {
     points: number;
     createdBy: User;
     parent?: Comment;
+    parentId?: number; // Add this to handle backend response
     replies: Comment[];
 }
 
@@ -347,13 +348,17 @@ const PostDetailPage: React.FC = () => {
         comments.forEach(comment => {
             const commentWithReplies = commentMap.get(comment.id!)!;
 
-            if (comment.parent?.id) {
+            // Check both parent?.id and parentId to handle different backend responses
+            const parentId = comment.parent?.id || comment.parentId;
+
+            if (parentId) {
                 // This is a reply, add it to parent's replies
-                const parentComment = commentMap.get(comment.parent.id);
+                const parentComment = commentMap.get(parentId);
                 if (parentComment) {
                     parentComment.replies.push(commentWithReplies);
                 } else {
                     // Parent not found, treat as root comment
+                    console.warn(`Parent comment ${parentId} not found for comment ${comment.id}`);
                     rootComments.push(commentWithReplies);
                 }
             } else {

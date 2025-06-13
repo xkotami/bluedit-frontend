@@ -53,7 +53,7 @@ const Profile: React.FC = () => {
         try {
             const userId = localStorage.getItem('userId');
             if (!userId) {
-                router.push('/login');
+                await router.push('/login');
                 return;
             }
 
