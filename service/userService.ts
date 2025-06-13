@@ -20,7 +20,7 @@ interface AuthData {
 
 export const loginUser = async (email: string, password: string): Promise<LoginResult> => {
     try {
-        const response = await fetch(`https://cne-functions.azurewebsites.net/api/user/login`, {
+        const response = await fetch(`${apiBaseUrl}/user/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -134,21 +134,22 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
         }
     });
 };
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
 // Additional API functions based on the provided endpoints
 export const createUser = async (userData: any): Promise<any> => {
-    return authenticatedFetch('https://cne-functions.azurewebsites.net/api/user/register', {
+    return authenticatedFetch(`${apiBaseUrl}/user/register`, {
         method: 'POST',
         body: JSON.stringify(userData)
     });
 };
 
 export const getUserById = async (id: string): Promise<any> => {
-    return authenticatedFetch(`https://cne-functions.azurewebsites.net/api/users/${id}`);
+    return authenticatedFetch(`${apiBaseUrl}/user/${id}`);
 };
 
 export const getUsers = async (): Promise<any> => {
-    return authenticatedFetch('https://cne-functions.azurewebsites.net/api/users');
+    return authenticatedFetch(`${apiBaseUrl}/users`);
 };
 
 // Note: You can add more functions for other endpoints as needed

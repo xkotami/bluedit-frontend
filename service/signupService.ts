@@ -24,13 +24,15 @@ interface AuthData {
     userId: string | null;
 }
 
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+
 export const signupUser = async (signupData: SignupRequest): Promise<SignupResult> => {
     try {
         // Updated to use the correct Azure Functions endpoint
-        const response = await fetch('https://cne-functions.azurewebsites.net/api/user/register', {
+        const response = await fetch(`${apiBaseUrl}/user/register`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(signupData)
         });

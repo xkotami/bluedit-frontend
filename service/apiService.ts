@@ -66,6 +66,8 @@ interface ApiResponse<T> {
     error?: string;
 }
 
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+
 // Auth utilities - Note: These use localStorage which won't work in Claude artifacts
 // In production, consider using proper state management
 export const getAuthToken = (): string | null => {
@@ -99,14 +101,44 @@ export const getCurrentUserId = (): number | null => {
 const apiCall = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
     const token = getAuthToken();
 
-    return fetch(`https://cne-functions.azurewebsites.net/api${endpoint}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` }),
-            ...options.headers,
-        },
-    });
+    const tryEndpoint = async (url: string): Promise<Response> => {
+        return fetch(`${apiBaseUrl}${url}`, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token && { 'Authorization': `Bearer ${token}` }),
+                ...options.headers,
+            },
+        });
+    };
+
+    // First try the original endpoint
+    const initialResponse = await tryEndpoint(endpoint);
+
+    // If not 404, return the response
+    if (initialResponse.status !== 404) {
+        return initialResponse;
+    }
+
+    // If 404, try the alternative version (singular/plural)
+    const parts = endpoint.split('/').filter(part => part !== '');
+    if (parts.length > 0) {
+        const lastPart = parts[parts.length - 1];
+        const isPlural = lastPart.endsWith('s');
+        const alternativeLastPart = isPlural
+            ? lastPart.slice(0, -1) // make singular
+            : lastPart + 's';      // make plural
+
+        const alternativeEndpoint = '/' +
+            parts.slice(0, -1).join('/') +
+            (parts.length > 1 ? '/' : '') +
+            alternativeLastPart;
+
+        return await tryEndpoint(alternativeEndpoint);
+    }
+
+    // If no alternative to try, return the original 404 response
+    return initialResponse;
 };
 
 // AUTH SERVICES
@@ -114,7 +146,7 @@ export const authService = {
     // Get current user info
     getCurrentUser: async (userId: string): Promise<User> => {
         try {
-            const response = await apiCall(`/users/${userId}`);
+            const response = await apiCall(`/user/${userId}`);
 
             if (!response.ok) {
                 throw new Error('Failed to get current user');
@@ -149,7 +181,7 @@ export const userService = {
     // Login user - Updated to use correct endpoint
     login: async (email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch('https://cne-functions.azurewebsites.net/api/user/login', {
+            const response = await fetch(`${apiBaseUrl}/user/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -211,7 +243,7 @@ export const userService = {
     // Register user - Updated to use correct endpoint
     register: async (username: string, email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch('https://cne-functions.azurewebsites.net/api/user/register', {
+            const response = await fetch(`${apiBaseUrl}/user/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password }),
@@ -288,7 +320,7 @@ export const userService = {
     // Get user by ID
     getUserById: async (id: number): Promise<ApiResponse<User>> => {
         try {
-            const response = await apiCall(`/users/${id}`);
+            const response = await apiCall(`/user/${id}`);
 
             if (!response.ok) {
                 throw new Error('User not found');

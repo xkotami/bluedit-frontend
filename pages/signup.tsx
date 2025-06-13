@@ -96,7 +96,7 @@ const Signup: React.FC = () => {
 
             if (result.success) {
                 console.log('Signup successful:', result.data);
-                router.push('/profile'); 
+                await router.push('/profile');
             } else {
                 setError(result.error || 'Signup failed');
             }
