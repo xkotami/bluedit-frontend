@@ -101,44 +101,14 @@ export const getCurrentUserId = (): number | null => {
 const apiCall = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
     const token = getAuthToken();
 
-    const tryEndpoint = async (url: string): Promise<Response> => {
-        return fetch(`${apiBaseUrl}${url}`, {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...(token && { 'Authorization': `Bearer ${token}` }),
-                ...options.headers,
-            },
-        });
-    };
-
-    // First try the original endpoint
-    const initialResponse = await tryEndpoint(endpoint);
-
-    // If not 404, return the response
-    if (initialResponse.status !== 404) {
-        return initialResponse;
-    }
-
-    // If 404, try the alternative version (singular/plural)
-    const parts = endpoint.split('/').filter(part => part !== '');
-    if (parts.length > 0) {
-        const lastPart = parts[parts.length - 1];
-        const isPlural = lastPart.endsWith('s');
-        const alternativeLastPart = isPlural
-            ? lastPart.slice(0, -1) // make singular
-            : lastPart + 's';      // make plural
-
-        const alternativeEndpoint = '/' +
-            parts.slice(0, -1).join('/') +
-            (parts.length > 1 ? '/' : '') +
-            alternativeLastPart;
-
-        return await tryEndpoint(alternativeEndpoint);
-    }
-
-    // If no alternative to try, return the original 404 response
-    return initialResponse;
+    return fetch(`https://cne-functions.azurewebsites.net/api${endpoint}`, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+            ...options.headers,
+        },
+    });
 };
 
 // AUTH SERVICES

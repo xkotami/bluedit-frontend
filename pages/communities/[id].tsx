@@ -80,6 +80,8 @@ const CommunityDetailPage: React.FC = () => {
                 });
 
                 setPosts(sortedPosts);
+                console.log(sortedPosts);
+                setPostsLoading(false);
             } else {
                 setError('Community not found');
             }
