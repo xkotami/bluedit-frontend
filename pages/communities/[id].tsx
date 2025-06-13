@@ -55,7 +55,7 @@ const CommunityDetailPage: React.FC = () => {
     useEffect(() => {
         if (id) {
             loadCommunityData();
-            loadCommunityPosts();
+            // loadCommunityPosts();
             if (isAuthenticated()) {
                 loadUserCommunities();
             }
@@ -67,26 +67,8 @@ const CommunityDetailPage: React.FC = () => {
             const result = await communityService.getCommunityById(parseInt(id as string));
             if (result.success && result.data) {
                 setCommunity(result.data);
-            } else {
-                setError('Community not found');
-            }
-        } catch (err) {
-            setError('Failed to load community');
-        } finally {
-            setLoading(false);
-        }
-    };
 
-    const loadCommunityPosts = async () => {
-        try {
-            const result = await postService.getPostsByCommunity(id as string);
-            if (result.success && result.data) {
-                // Filter out posts with invalid createdAt dates and sort by newest first
-                const validPosts = result.data.filter(post =>
-                    post && post.createdAt
-                );
-
-                const sortedPosts = validPosts.sort((a, b) => {
+                const sortedPosts = result.data.posts.sort((a, b) => {
                     const dateA = new Date(a.createdAt);
                     const dateB = new Date(b.createdAt);
 
@@ -99,15 +81,46 @@ const CommunityDetailPage: React.FC = () => {
 
                 setPosts(sortedPosts);
             } else {
-                setPosts([]);
+                setError('Community not found');
             }
         } catch (err) {
-            console.error('Failed to load community posts:', err);
-            setPosts([]);
+            setError('Failed to load community');
         } finally {
-            setPostsLoading(false);
+            setLoading(false);
         }
     };
+
+    // const loadCommunityPosts = async () => {
+    //     try {
+    //         const result = await postService.getPostsByCommunity(id as string);
+    //         if (result.success && result.data) {
+    //             // Filter out posts with invalid createdAt dates and sort by newest first
+    //             const validPosts = result.data.filter(post =>
+    //                 post && post.createdAt
+    //             );
+    //
+    //             const sortedPosts = validPosts.sort((a, b) => {
+    //                 const dateA = new Date(a.createdAt);
+    //                 const dateB = new Date(b.createdAt);
+    //
+    //                 // Handle invalid dates
+    //                 if (isNaN(dateA.getTime())) return 1;
+    //                 if (isNaN(dateB.getTime())) return -1;
+    //
+    //                 return dateB.getTime() - dateA.getTime();
+    //             });
+    //
+    //             setPosts(sortedPosts);
+    //         } else {
+    //             setPosts([]);
+    //         }
+    //     } catch (err) {
+    //         console.error('Failed to load community posts:', err);
+    //         setPosts([]);
+    //     } finally {
+    //         setPostsLoading(false);
+    //     }
+    // };
 
     const loadUserCommunities = async () => {
         try {
