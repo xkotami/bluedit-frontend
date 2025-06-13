@@ -3,7 +3,9 @@
   "scripts": {
     "dev": "next dev -p 8080",
     "build": "next build",
-    "start": "npm run dev"
+    "deploy": "next build",
+    "start": "npm run dev",
+    "export": "next export"
   },
   "dependencies": {
     "@types/react": "18.0.28",
