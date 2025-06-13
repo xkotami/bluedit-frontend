@@ -66,8 +66,6 @@ interface ApiResponse<T> {
     error?: string;
 }
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
-
 // Auth utilities - Note: These use localStorage which won't work in Claude artifacts
 // In production, consider using proper state management
 export const getAuthToken = (): string | null => {
@@ -116,7 +114,7 @@ export const authService = {
     // Get current user info
     getCurrentUser: async (userId: string): Promise<User> => {
         try {
-            const response = await apiCall(`/user/${userId}`);
+            const response = await apiCall(`/users/${userId}`);
 
             if (!response.ok) {
                 throw new Error('Failed to get current user');
@@ -151,7 +149,7 @@ export const userService = {
     // Login user - Updated to use correct endpoint
     login: async (email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch(`${apiBaseUrl}/user/login`, {
+            const response = await fetch('https://cne-functions.azurewebsites.net/api/user/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
@@ -213,7 +211,7 @@ export const userService = {
     // Register user - Updated to use correct endpoint
     register: async (username: string, email: string, password: string): Promise<ApiResponse<{token: string; email: string; id: string}>> => {
         try {
-            const response = await fetch(`${apiBaseUrl}/user/register`, {
+            const response = await fetch('https://cne-functions.azurewebsites.net/api/user/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password }),
@@ -290,7 +288,7 @@ export const userService = {
     // Get user by ID
     getUserById: async (id: number): Promise<ApiResponse<User>> => {
         try {
-            const response = await apiCall(`/user/${id}`);
+            const response = await apiCall(`/users/${id}`);
 
             if (!response.ok) {
                 throw new Error('User not found');
