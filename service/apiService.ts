@@ -635,7 +635,7 @@ export const commentService = {
         try {
             console.log('Creating reply with data:', replyData);
 
-            const response = await apiCall('/comments', {
+            const response = await apiCall('/comments/reply', {
                 method: 'POST',
                 body: JSON.stringify({
                     text: replyData.text,
